@@ -18,6 +18,8 @@ func (m *Map) processTile(tile *types.Tile) {
 		return
 	}
 
+	tile.Particle.UpdateState()
+
 	tileEnv := m.buildTileEnv(tile)
 	tile.Particle.Material().ProcessInternal(tileEnv)
 	m.applyActions(tileEnv.Actions()...)

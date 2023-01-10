@@ -110,6 +110,10 @@ func (m *Map) RemoveParticles(x, y, radius int) {
 	}
 }
 
+func (m *Map) FlipGravity() {
+	closerange.FlipGravity()
+}
+
 func (m *Map) isPositionValid(x, y int) bool {
 	return x >= 0 && y >= 0 && x < m.width && y < m.height
 }

@@ -9,6 +9,7 @@ type worldActionType int
 const (
 	worldActionTypeCreateParticles worldActionType = iota
 	worldActionDeleteParticles
+	worldActionFlipGravity
 )
 
 type worldAction interface {
@@ -33,4 +34,10 @@ type deleteParticlesWorldAction struct {
 
 func (a deleteParticlesWorldAction) Type() worldActionType {
 	return worldActionDeleteParticles
+}
+
+type flipGravityWorldAction struct{}
+
+func (a flipGravityWorldAction) Type() worldActionType {
+	return worldActionFlipGravity
 }

@@ -105,6 +105,15 @@ func (d Direction) Sector(depth uint) []Direction {
 	return neighbours
 }
 
+func (d Direction) Next() Direction {
+	dNext := d + 1
+	if dNext > 7 {
+		dNext = 0
+	}
+
+	return dNext
+}
+
 func (d Direction) Rotate180() Direction {
 	return (d + 4) % 8
 }

@@ -67,7 +67,14 @@ func RandomAngle() (angleRad float64) {
 }
 
 func FlipCoin() bool {
-	return rand.Int31n(2) == 0
+	return rand.Intn(2) == 0
+}
+
+func RollDice(size int) bool {
+	if size < 2 {
+		size = 2
+	}
+	return rand.Intn(size) == 0
 }
 
 func init() {

@@ -16,9 +16,9 @@ func NewSmoke() Smoke {
 	return Smoke{
 		base: newBase(
 			color.RGBA{R: 0xCD, G: 0xCD, B: 0xCD, A: 0xFF},
-			withHealthDamperStep(0.5),
 			withFlags(types.MaterialFlagIsGas),
 			withMass(2.0),
+			withHealthDamperStep(0.5),
 		),
 	}
 }

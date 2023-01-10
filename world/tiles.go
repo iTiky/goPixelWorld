@@ -46,12 +46,15 @@ func (m *Map) moveTile(sourceTile *types.Tile, targetPos types.Position) {
 	targetTile.Particle = sourceTile.Particle
 	sourceTile.Particle = nil
 
+	targetTile.Particle.HandleMoved()
 	m.particles[targetTile.Particle.ID()] = targetTile
 }
 
 func (m *Map) swapTiles(tile1, tile2 *types.Tile) {
 	tile1.Particle, tile2.Particle = tile2.Particle, tile1.Particle
 
+	tile1.Particle.HandleMoved()
+	tile2.Particle.HandleMoved()
 	m.particles[tile1.Particle.ID()] = tile1
 	m.particles[tile2.Particle.ID()] = tile2
 }

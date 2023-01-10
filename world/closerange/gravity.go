@@ -23,3 +23,7 @@ func (e *Environment) AddReverseGravity() bool {
 	e.actions = append(e.actions, types.NewAddForce(e.source.Pos, gravityUpVec))
 	return true
 }
+
+func FlipGravity() {
+	gravityDownVec, gravityUpVec = gravityUpVec, gravityDownVec
+}

@@ -156,6 +156,8 @@ func (r *Runner) applyWorldAction(actionBz worldAction) {
 		radius := int(float64(action.mouseRadius) / r.tileSize)
 
 		r.worldMap.RemoveParticles(x, y, radius)
+	case flipGravityWorldAction:
+		r.worldMap.FlipGravity()
 	}
 }
 

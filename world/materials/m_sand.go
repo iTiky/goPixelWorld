@@ -16,9 +16,9 @@ func NewSand() Sand {
 	return Sand{
 		base: newBase(
 			color.RGBA{R: 0xFF, G: 0xD5, B: 0x00, A: 0xFF},
-			withForceDamperK(0.9),
 			withFlags(types.MaterialFlagIsSand),
 			withMass(5.0),
+			withForceDamperK(0.9),
 		),
 	}
 }
@@ -32,8 +32,6 @@ func (m Sand) ProcessInternal(env types.TileEnvironment) {
 }
 
 func (m Sand) ProcessCollision(env types.CollisionEnvironment) {
-	env.DampSourceForce(m.forceDamperK)
-
 	if env.IsFlagged(types.MaterialFlagIsSand) || env.IsFlagged(types.MaterialFlagIsLiquid) {
 		if env.MoveSandSource() {
 			return
@@ -41,6 +39,8 @@ func (m Sand) ProcessCollision(env types.CollisionEnvironment) {
 	}
 
 	env.ReflectSourceTargetForces()
+
+	env.DampSourceForce(m.forceDamperK)
 
 	return
 }

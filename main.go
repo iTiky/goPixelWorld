@@ -21,8 +21,10 @@ func main() {
 		materials.NewSand(),
 		materials.NewWater(),
 		materials.NewWood(),
-		materials.NewSmoke(),
 		materials.NewFire(),
+		materials.NewGrass(),
+		materials.NewSmoke(),
+		materials.NewSteam(),
 	}
 
 	worldMap, err := world.NewMap(200, 200)

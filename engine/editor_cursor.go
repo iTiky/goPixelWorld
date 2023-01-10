@@ -140,6 +140,10 @@ func (t *cursorTool) DecRadius() {
 	}
 }
 
+func (t *cursorTool) FlipGravity() {
+	t.pendingWorldAction = flipGravityWorldAction{}
+}
+
 func ColorToNRGBA(c color.Color) color.NRGBA {
 	r, g, b, a := c.RGBA()
 

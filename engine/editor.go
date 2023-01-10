@@ -40,6 +40,9 @@ func WithEditorUI(materials ...worldTypes.MaterialI) RunnerOption {
 		e.keyboardInput.SetCallback(ebiten.KeyE, func() {
 			e.cursor.IncRadius()
 		})
+		e.keyboardInput.SetCallback(ebiten.KeyZ, func() {
+			e.cursor.FlipGravity()
+		})
 
 		removeToggleTool := newRemoveToggleTile(e.cursor.UpdateMaterial)
 		e.keyboardInput.SetCallback(ebiten.KeyD, func() {
@@ -55,6 +58,7 @@ func WithEditorUI(materials ...worldTypes.MaterialI) RunnerOption {
 				e.cursor.EnableDot()
 			},
 		)
+		circleCursorTool.Toggle()
 		e.keyboardInput.SetCallback(ebiten.KeyS, func() {
 			circleCursorTool.Toggle()
 		})

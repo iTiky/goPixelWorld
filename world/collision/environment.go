@@ -29,6 +29,14 @@ func NewEnvironment(direction pkg.Direction, sourceTile, targetTile *types.Tile)
 	return &e
 }
 
+func (e *Environment) Reset(direction pkg.Direction, sourceTile, targetTile *types.Tile) {
+	e.direction = direction
+	e.source = sourceTile
+	e.target = targetTile
+	e.neighbours = make(map[pkg.Direction]*types.Tile, len(e.neighbours))
+	e.actions = e.actions[:0]
+}
+
 func (e *Environment) TargetMaterial() types.Material {
 	return e.target.Particle.Material()
 }

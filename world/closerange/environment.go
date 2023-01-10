@@ -19,6 +19,12 @@ func NewEnvironment(sourceTile *types.Tile) *Environment {
 	}
 }
 
+func (e *Environment) Reset(sourceTile *types.Tile) {
+	e.source = sourceTile
+	e.actions = e.actions[:0]
+	e.neighbours = make(map[pkg.Direction]*types.Tile, len(e.neighbours))
+}
+
 func (e *Environment) SetNeighbour(dir pkg.Direction, tile *types.Tile) {
 	if tile == nil {
 		return

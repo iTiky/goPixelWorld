@@ -5,59 +5,53 @@ import (
 )
 
 func (m *Map) iterateNonEmptyTiles(fn func(tile *types.Tile)) {
-	for _, pos := range m.particles {
-		fn(m.getTile(pos))
+	for _, tile := range m.particles {
+		fn(tile)
 	}
 }
 
-func (m *Map) createTile(pos types.Position, material types.Material) *types.Tile {
+func (m *Map) getTile(x, y int) *types.Tile {
+	return m.grid[x][y]
+}
+
+func (m *Map) createTile(pos types.Position, material types.Material) {
+	tile := types.NewTile(pos, nil)
+	if material != nil {
+		m.createParticle(tile, material)
+	}
+
+	m.grid[tile.Pos.X][tile.Pos.Y] = tile
+}
+
+func (m *Map) createParticle(tile *types.Tile, material types.Material) {
 	particle := types.NewParticle(material)
-	m.particles[particle.ID()] = pos
-	m.grid[pos.X][pos.Y] = particle
+	tile.Particle = particle
 
-	return types.NewTile(pos, particle)
+	m.particles[tile.Particle.ID()] = tile
 }
 
-func (m *Map) removeTile(tile *types.Tile) {
+func (m *Map) removeParticle(tile *types.Tile) bool {
+	if tile.HasParticle() && tile.Particle.Material().IsFlagged(types.MaterialFlagIsUnremovable) {
+		return false
+	}
+
 	delete(m.particles, tile.Particle.ID())
-	m.grid[tile.Pos.X][tile.Pos.Y] = nil
+	m.grid[tile.Pos.X][tile.Pos.Y].Particle = nil
+
+	return true
 }
 
-func (m *Map) removeTileAtPos(pos types.Position) {
-	tile := m.getTile(pos)
-	if tile == nil || !tile.HasParticle() || tile.Particle.Material().IsFlagged(types.MaterialFlagIsUnremovable) {
-		return
-	}
+func (m *Map) moveTile(sourceTile *types.Tile, targetPos types.Position) {
+	targetTile := m.getTile(targetPos.X, targetPos.Y)
+	targetTile.Particle = sourceTile.Particle
+	sourceTile.Particle = nil
 
-	m.removeTile(tile)
-}
-
-func (m *Map) getTile(pos types.Position) *types.Tile {
-	if !m.isPositionValid(pos) {
-		return nil
-	}
-
-	return types.NewTile(pos, m.grid[pos.X][pos.Y])
-}
-
-func (m *Map) moveTile(tile *types.Tile, newPos types.Position) {
-	if tile := m.getTile(newPos); tile == nil || tile.HasParticle() {
-		panic("FUCK")
-	}
-
-	m.grid[newPos.X][newPos.Y] = tile.Particle
-	m.grid[tile.Pos.X][tile.Pos.Y] = nil
-	m.particles[tile.Particle.ID()] = newPos
-	tile.Pos = newPos
+	m.particles[targetTile.Particle.ID()] = targetTile
 }
 
 func (m *Map) swapTiles(tile1, tile2 *types.Tile) {
-	pos1, pos2 := tile1.Pos, tile2.Pos
-	particle1, particle2 := tile1.Particle, tile2.Particle
+	tile1.Particle, tile2.Particle = tile2.Particle, tile1.Particle
 
-	m.particles[tile1.Particle.ID()] = pos2
-	m.particles[tile2.Particle.ID()] = pos1
-	m.grid[pos1.X][pos1.Y] = particle2
-	m.grid[pos2.X][pos2.Y] = particle1
-	tile1.Pos, tile2.Pos = pos2, pos1
+	m.particles[tile1.Particle.ID()] = tile1
+	m.particles[tile2.Particle.ID()] = tile2
 }

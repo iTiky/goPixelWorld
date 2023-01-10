@@ -5,6 +5,7 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
 	"github.com/itiky/goPixelWorld/world"
 	worldTypes "github.com/itiky/goPixelWorld/world/types"
@@ -91,6 +92,9 @@ func (r *Runner) Draw(screen *ebiten.Image) {
 	if r.editor != nil {
 		r.editor.Draw(screen)
 	}
+
+	mouseX, mouseY := ebiten.CursorPosition()
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("[%d, %d]", r.mouseCoordToWorld(mouseX), r.mouseCoordToWorld(mouseY)))
 }
 
 func (r *Runner) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -153,4 +157,8 @@ func (r *Runner) applyWorldAction(actionBz worldAction) {
 
 		r.worldMap.RemoveParticles(x, y, radius)
 	}
+}
+
+func (r *Runner) mouseCoordToWorld(c int) int {
+	return int(float64(c) / r.tileSize)
 }

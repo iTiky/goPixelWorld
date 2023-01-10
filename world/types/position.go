@@ -40,11 +40,11 @@ func (p Position) CreatePathTo(toPos Position, xMax, yMax int) (path []Position)
 	}()
 
 	appendToPath := func(pos Position) bool {
-		if pos.X < 0 || pos.X > xMax {
+		if pos.X < 0 || pos.X >= xMax {
 			appendToPathFailed = true
 			return false
 		}
-		if pos.Y < 0 || pos.Y > yMax {
+		if pos.Y < 0 || pos.Y >= yMax {
 			appendToPathFailed = true
 			return false
 		}

@@ -5,6 +5,8 @@ import (
 	"math/rand"
 
 	"github.com/itiky/goPixelWorld/pkg"
+	"github.com/itiky/goPixelWorld/world/closerange"
+	"github.com/itiky/goPixelWorld/world/collision"
 	"github.com/itiky/goPixelWorld/world/materials"
 	"github.com/itiky/goPixelWorld/world/types"
 )
@@ -12,8 +14,11 @@ import (
 type Map struct {
 	width     int
 	height    int
-	particles map[uint64]types.Position
-	grid      [][]*types.Particle
+	particles map[uint64]*types.Tile
+	grid      [][]*types.Tile
+	//
+	tileEnv      *closerange.Environment
+	collisionEnv *collision.Environment
 }
 
 func NewMap(width, height int) (*Map, error) {
@@ -22,24 +27,23 @@ func NewMap(width, height int) (*Map, error) {
 	}
 
 	m := Map{
-		width:     width,
-		height:    height,
-		particles: make(map[uint64]types.Position),
-		grid:      make([][]*types.Particle, width),
+		width:        width,
+		height:       height,
+		particles:    make(map[uint64]*types.Tile),
+		grid:         make([][]*types.Tile, width),
+		tileEnv:      closerange.NewEnvironment(nil),
+		collisionEnv: collision.NewEnvironment(pkg.DirectionTop, nil, nil),
 	}
 	for x := 0; x < width; x++ {
-		m.grid[x] = make([]*types.Particle, height)
-	}
+		m.grid[x] = make([]*types.Tile, height)
+		for y := 0; y < height; y++ {
+			var material types.Material
+			if x == 0 || y == 0 || x == width-1 || y == height-1 {
+				material = materials.NewBorder()
+			}
 
-	for x := 0; x < width; x++ {
-		posTop, posBottom := types.NewPosition(x, 0), types.NewPosition(x, height-1)
-		m.createTile(posTop, materials.NewBorder())
-		m.createTile(posBottom, materials.NewBorder())
-	}
-	for y := 1; y < height-1; y++ {
-		posLeft, posRight := types.NewPosition(0, y), types.NewPosition(width-1, y)
-		m.createTile(posLeft, materials.NewBorder())
-		m.createTile(posRight, materials.NewBorder())
+			m.createTile(types.NewPosition(x, y), material)
+		}
 	}
 
 	return &m, nil
@@ -55,9 +59,13 @@ func (m *Map) IterateTiles(fn func(tile types.TileI)) {
 	})
 }
 
+func (m *Map) Update() {
+	m.iterateNonEmptyTiles(m.processTile)
+}
+
 func (m *Map) CreateParticles(x, y, radius int, materialBz types.MaterialI, randomForce bool) {
 	for _, pos := range types.PositionsInCircle(x, y, radius) {
-		if !m.isPositionValid(pos) {
+		if !m.isPositionValid(pos.X, pos.Y) {
 			continue
 		}
 
@@ -65,15 +73,18 @@ func (m *Map) CreateParticles(x, y, radius int, materialBz types.MaterialI, rand
 		if !ok {
 			continue
 		}
-		if material.Type() == types.MaterialTypeFire {
-			m.removeTileAtPos(pos)
-		}
 
-		if existingTile := m.getTile(pos); existingTile.HasParticle() {
-			continue
+		tile := m.getTile(pos.X, pos.Y)
+		if tile.HasParticle() {
+			if material.Type() != types.MaterialTypeFire {
+				continue
+			}
+			if !m.removeParticle(tile) {
+				continue
+			}
 		}
+		m.createParticle(tile, material)
 
-		tile := m.createTile(pos, material)
 		if randomForce {
 			forceVec := pkg.NewVector(
 				float64(rand.Int31n(4)),
@@ -86,18 +97,19 @@ func (m *Map) CreateParticles(x, y, radius int, materialBz types.MaterialI, rand
 
 func (m *Map) RemoveParticles(x, y, radius int) {
 	for _, pos := range types.PositionsInCircle(x, y, radius) {
-		if !m.isPositionValid(pos) {
+		if !m.isPositionValid(pos.X, pos.Y) {
 			continue
 		}
 
-		if existingTile := m.getTile(pos); !existingTile.HasParticle() {
+		tile := m.getTile(pos.X, pos.Y)
+		if !tile.HasParticle() {
 			continue
 		}
 
-		m.removeTileAtPos(pos)
+		m.removeParticle(tile)
 	}
 }
 
-func (m *Map) isPositionValid(pos types.Position) bool {
-	return pos.X >= 0 && pos.Y >= 0 && pos.X < m.width && pos.Y < m.height
+func (m *Map) isPositionValid(x, y int) bool {
+	return x >= 0 && y >= 0 && x < m.width && y < m.height
 }

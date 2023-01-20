@@ -18,6 +18,7 @@ const (
 	ActionTypeReduceHealth
 	ActionTypeTileReplace
 	ActionTypeTileAdd
+	ActionTypeUpdateStateParam
 )
 
 type Action interface {
@@ -213,4 +214,24 @@ func NewTileAdd(tilePos Position, material Material) TileAdd {
 
 func (a TileAdd) Type() ActionType {
 	return ActionTypeTileAdd
+}
+
+type UpdateStateParam struct {
+	ActionBase
+	ParamKey   string
+	ParamValue int
+}
+
+func NewUpdateStateParam(tilePos Position, paramKey string, paramValue int) UpdateStateParam {
+	return UpdateStateParam{
+		ActionBase: ActionBase{
+			TilePos: tilePos,
+		},
+		ParamKey:   paramKey,
+		ParamValue: paramValue,
+	}
+}
+
+func (a UpdateStateParam) Type() ActionType {
+	return ActionTypeUpdateStateParam
 }

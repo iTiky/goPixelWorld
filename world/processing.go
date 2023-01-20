@@ -1,8 +1,6 @@
 package world
 
 import (
-	"fmt"
-
 	"github.com/itiky/goPixelWorld/pkg"
 	"github.com/itiky/goPixelWorld/world/closerange"
 	"github.com/itiky/goPixelWorld/world/collision"
@@ -10,12 +8,12 @@ import (
 )
 
 func (m *Map) processTile(tile *types.Tile) {
-	if tile.Particle == nil {
-		fmt.Println("FUCK")
-	}
-
 	if tile.Particle.Material().Type() == types.MaterialTypeBorder {
 		return
+	}
+
+	if m.monitor != nil {
+		defer m.monitor.TrackOpDuration("Map.processTile")()
 	}
 
 	tile.Particle.UpdateState()
@@ -39,28 +37,54 @@ func (m *Map) processTile(tile *types.Tile) {
 }
 
 func (m *Map) buildTileEnv(sourceTile *types.Tile) *closerange.Environment {
-	m.tileEnv.Reset(sourceTile)
-	setNeighbor := func(dir pkg.Direction, dx, dy int) {
-		x, y := sourceTile.Pos.X+dx, sourceTile.Pos.Y+dy
-		if !m.isPositionValid(x, y) {
-			return
-		}
-		m.tileEnv.SetNeighbour(dir, m.getTile(x, y))
+	if m.monitor != nil {
+		defer m.monitor.TrackOpDuration("Map.buildTileEnv")()
 	}
 
-	setNeighbor(pkg.DirectionTop, 0, -1)
-	setNeighbor(pkg.DirectionTopRight, 1, -1)
-	setNeighbor(pkg.DirectionRight, 1, 0)
-	setNeighbor(pkg.DirectionBottomRight, 1, 1)
-	setNeighbor(pkg.DirectionBottom, 0, 1)
-	setNeighbor(pkg.DirectionBottomLeft, -1, 1)
-	setNeighbor(pkg.DirectionLeft, -1, 0)
-	setNeighbor(pkg.DirectionTopLeft, -1, -1)
+	m.tileEnv.Reset(sourceTile)
+	switch sourceTile.Particle.Material().CloseRangeType() {
+	case types.MaterialCloseRangeTypeNone:
+	case types.MaterialCloseRangeTypeSurrounding:
+		setNeighbor := func(dir pkg.Direction, dx, dy int) {
+			x, y := sourceTile.Pos.X+dx, sourceTile.Pos.Y+dy
+			if !m.isPositionValid(x, y) {
+				return
+			}
+			m.tileEnv.SetNeighbour(dir, m.getTile(x, y))
+		}
+
+		setNeighbor(pkg.DirectionTop, 0, -1)
+		setNeighbor(pkg.DirectionTopRight, 1, -1)
+		setNeighbor(pkg.DirectionRight, 1, 0)
+		setNeighbor(pkg.DirectionBottomRight, 1, 1)
+		setNeighbor(pkg.DirectionBottom, 0, 1)
+		setNeighbor(pkg.DirectionBottomLeft, -1, 1)
+		setNeighbor(pkg.DirectionLeft, -1, 0)
+		setNeighbor(pkg.DirectionTopLeft, -1, -1)
+	case types.MaterialCloseRangeTypeInCircleRange:
+		r := sourceTile.Particle.Material().CloseRangeCircleRadius()
+		for _, pos := range types.PositionsInCircle(sourceTile.Pos.X, sourceTile.Pos.Y, r, false) {
+			if !m.isPositionValid(pos.X, pos.Y) {
+				continue
+			}
+
+			neighborTile := m.getTile(pos.X, pos.Y)
+			if !neighborTile.HasParticle() {
+				continue
+			}
+
+			m.tileEnv.AddTileInRange(neighborTile)
+		}
+	}
 
 	return m.tileEnv
 }
 
 func (m *Map) buildCollisionEnv(sourceTile *types.Tile) (*types.Tile, *collision.Environment) {
+	if m.monitor != nil {
+		defer m.monitor.TrackOpDuration("Map.buildCollisionEnv")()
+	}
+
 	targetTile := sourceTile.TargetTile()
 	if targetTile == nil {
 		return nil, nil
@@ -144,6 +168,10 @@ func (m *Map) buildCollisionEnv(sourceTile *types.Tile) (*types.Tile, *collision
 }
 
 func (m *Map) applyActions(actions ...types.Action) {
+	if m.monitor != nil {
+		defer m.monitor.TrackOpDuration("Map.applyActions")()
+	}
+
 	for _, aBz := range actions {
 		tile1Pos := aBz.GetTilePos()
 		tile1 := m.getTile(tile1Pos.X, tile1Pos.Y)
@@ -202,6 +230,11 @@ func (m *Map) applyActions(actions ...types.Action) {
 			}
 			m.removeParticle(tile1)
 			m.createParticle(tile1, a.Material)
+		case types.UpdateStateParam:
+			if !tile1.HasParticle() {
+				break
+			}
+			tile1.Particle.SetStateParam(a.ParamKey, a.ParamValue)
 		case types.TileAdd:
 			m.createParticle(tile1, a.Material)
 		}

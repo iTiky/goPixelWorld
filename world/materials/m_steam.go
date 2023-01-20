@@ -19,13 +19,13 @@ func NewSteam() Steam {
 			color.RGBA{R: 0x05, G: 0x00, B: 0xA7, A: 0xFF},
 			withFlags(types.MaterialFlagIsGas),
 			withMass(5.0),
-			withHealthDamperStep(0.25),
+			withSelfHealthReduction(100.0, 0.25),
 		),
 	}
 }
 
 func (m Steam) Type() types.MaterialType {
-	return types.MaterialTypeGrass
+	return types.MaterialTypeSteam
 }
 
 func (m Steam) ColorAdjusted(health float64) color.Color {
@@ -44,11 +44,11 @@ func (m Steam) ColorAdjusted(health float64) color.Color {
 
 func (m Steam) ProcessInternal(env types.TileEnvironment) {
 	env.AddReverseGravity()
-	env.ReduceHealth(m.healthDamperStep)
+	env.DampSelfHealth(m.selfHealthDampStep)
 
 	if env.Health() < 10.0 && pkg.RollDice(3) {
-		env.RemoveHealthSelfReductions()
-		env.ReplaceSelf(NewWater())
+		env.RemoveSelfHealthDamps()
+		env.ReplaceSelf(WaterM)
 	}
 }
 
@@ -57,8 +57,5 @@ func (m Steam) ProcessCollision(env types.CollisionEnvironment) {
 		env.MoveSandSource()
 		return
 	}
-
 	env.SwapSourceTarget()
-
-	return
 }

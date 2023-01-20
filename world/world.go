@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"math/rand"
 
+	"github.com/itiky/goPixelWorld/monitor"
 	"github.com/itiky/goPixelWorld/pkg"
 	"github.com/itiky/goPixelWorld/world/closerange"
 	"github.com/itiky/goPixelWorld/world/collision"
 	"github.com/itiky/goPixelWorld/world/materials"
 	"github.com/itiky/goPixelWorld/world/types"
 )
+
+type MapOption func(*Map) error
 
 type Map struct {
 	width     int
@@ -19,26 +22,64 @@ type Map struct {
 	//
 	tileEnv      *closerange.Environment
 	collisionEnv *collision.Environment
+	//
+	monitor *monitor.Keeper
 }
 
-func NewMap(width, height int) (*Map, error) {
-	if width <= 0 || height <= 0 {
-		return nil, fmt.Errorf("invalid map size: %dx%d", width, height)
-	}
+func WithWidth(width int) MapOption {
+	return func(m *Map) error {
+		if width <= 0 {
+			return fmt.Errorf("invalid map width: %d", width)
+		}
 
+		m.width = width
+		return nil
+	}
+}
+
+func WithHeight(height int) MapOption {
+	return func(m *Map) error {
+		if height <= 0 {
+			return fmt.Errorf("invalid map height: %d", height)
+		}
+
+		m.height = height
+		return nil
+	}
+}
+
+func WithMonitor(keeper *monitor.Keeper) MapOption {
+	return func(m *Map) error {
+		if keeper == nil {
+			return fmt.Errorf("monitor keeper is nil")
+		}
+
+		m.monitor = keeper
+
+		return nil
+	}
+}
+
+func NewMap(opts ...MapOption) (*Map, error) {
 	m := Map{
-		width:        width,
-		height:       height,
+		width:        200,
+		height:       200,
 		particles:    make(map[uint64]*types.Tile),
-		grid:         make([][]*types.Tile, width),
 		tileEnv:      closerange.NewEnvironment(nil),
 		collisionEnv: collision.NewEnvironment(pkg.DirectionTop, nil, nil),
 	}
-	for x := 0; x < width; x++ {
-		m.grid[x] = make([]*types.Tile, height)
-		for y := 0; y < height; y++ {
+	for _, opt := range opts {
+		if err := opt(&m); err != nil {
+			return nil, err
+		}
+	}
+
+	m.grid = make([][]*types.Tile, m.width)
+	for x := 0; x < m.width; x++ {
+		m.grid[x] = make([]*types.Tile, m.height)
+		for y := 0; y < m.height; y++ {
 			var material types.Material
-			if x == 0 || y == 0 || x == width-1 || y == height-1 {
+			if x == 0 || y == 0 || x == m.width-1 || y == m.height-1 {
 				material = materials.NewBorder()
 			}
 
@@ -64,7 +105,7 @@ func (m *Map) Update() {
 }
 
 func (m *Map) CreateParticles(x, y, radius int, materialBz types.MaterialI, randomForce bool) {
-	for _, pos := range types.PositionsInCircle(x, y, radius) {
+	for _, pos := range types.PositionsInCircle(x, y, radius, true) {
 		if !m.isPositionValid(pos.X, pos.Y) {
 			continue
 		}
@@ -87,7 +128,7 @@ func (m *Map) CreateParticles(x, y, radius int, materialBz types.MaterialI, rand
 
 		if randomForce {
 			forceVec := pkg.NewVector(
-				float64(rand.Int31n(4)),
+				float64(rand.Int31n(5)),
 				pkg.RandomAngle(),
 			)
 			tile.Particle.SetForce(forceVec)
@@ -96,7 +137,7 @@ func (m *Map) CreateParticles(x, y, radius int, materialBz types.MaterialI, rand
 }
 
 func (m *Map) RemoveParticles(x, y, radius int) {
-	for _, pos := range types.PositionsInCircle(x, y, radius) {
+	for _, pos := range types.PositionsInCircle(x, y, radius, true) {
 		if !m.isPositionValid(pos.X, pos.Y) {
 			continue
 		}

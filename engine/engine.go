@@ -7,6 +7,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
+	"github.com/itiky/goPixelWorld/monitor"
 	"github.com/itiky/goPixelWorld/world"
 	worldTypes "github.com/itiky/goPixelWorld/world/types"
 )
@@ -27,6 +28,8 @@ type Runner struct {
 	tileSize     float64
 	tilesCache   map[color.Color]*ebiten.Image
 	tileDrawOpts *ebiten.DrawImageOptions
+	//
+	monitor *monitor.Keeper
 }
 
 func WithScreenSize(width, height int) RunnerOption {
@@ -36,6 +39,18 @@ func WithScreenSize(width, height int) RunnerOption {
 		}
 
 		r.screenWidthInitial, r.screenHeightInitial = width, height
+
+		return nil
+	}
+}
+
+func WithMonitor(monitor *monitor.Keeper) RunnerOption {
+	return func(r *Runner) error {
+		if monitor == nil {
+			return fmt.Errorf("monitor is nil")
+		}
+
+		r.monitor = monitor
 
 		return nil
 	}
@@ -76,6 +91,10 @@ func (r *Runner) Run() error {
 }
 
 func (r *Runner) Update() error {
+	if r.monitor != nil {
+		defer r.monitor.TrackOpDuration("Runner.Update")()
+	}
+
 	if r.editor != nil {
 		r.editor.HandleInput()
 		r.applyWorldAction(r.editor.GetNextWorldAction())
@@ -87,6 +106,11 @@ func (r *Runner) Update() error {
 }
 
 func (r *Runner) Draw(screen *ebiten.Image) {
+	if r.monitor != nil {
+		defer r.monitor.TrackOpDuration("Runner.Draw")()
+		r.monitor.AddFrame()
+	}
+
 	r.drawTiles(screen)
 
 	if r.editor != nil {

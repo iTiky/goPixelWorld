@@ -9,12 +9,17 @@ import (
 
 var lastParticleID uint64 = 0
 
+const (
+	ParticleStateParamSteady = "steady"
+)
+
 type Particle struct {
 	id        uint64
 	material  Material
 	forceVec  pkg.Vector
 	health    float64
 	steadyCnt int
+	state     map[string]int
 }
 
 func NewParticle(material Material) *Particle {
@@ -23,6 +28,7 @@ func NewParticle(material Material) *Particle {
 		material: material,
 		forceVec: pkg.NewVector(0, 0),
 		health:   material.InitialHealth(),
+		state:    make(map[string]int),
 	}
 }
 
@@ -50,12 +56,28 @@ func (p *Particle) Color() color.Color {
 	return p.material.ColorAdjusted(p.health)
 }
 
-func (p *Particle) HandleMoved() {
-	p.steadyCnt = 0
+func (p *Particle) SetStateParam(key string, value int) {
+	p.state[key] = value
+}
+
+func (p *Particle) GetStateParam(key string) int {
+	return p.state[key]
+}
+
+func (p *Particle) IncStateParam(key string) {
+	p.state[key] = p.state[key] + 1
+}
+
+func (p *Particle) DecStateParam(key string) {
+	p.state[key] = p.state[key] - 1
+}
+
+func (p *Particle) OnMove() {
+	p.SetStateParam(ParticleStateParamSteady, 0)
 }
 
 func (p *Particle) UpdateState() {
-	p.steadyCnt++
+	p.IncStateParam(ParticleStateParamSteady)
 	p.limitForce()
 }
 

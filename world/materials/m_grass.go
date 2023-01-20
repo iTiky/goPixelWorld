@@ -8,10 +8,13 @@ import (
 
 var _ types.Material = Grass{}
 
+const (
+	GrassGrowDirParam = "grass_grow_dir"
+)
+
 type Grass struct {
 	base
-	growsRateK                       float64
-	waterDrainK                      float64
+	waterHealthDrainStep             float64
 	surroundingWaterGrowsMultiplierK float64
 }
 
@@ -21,17 +24,16 @@ func NewGrass() Grass {
 			color.RGBA{R: 0x04, G: 0xDE, B: 0x1E, A: 0xFF},
 			withFlags(types.MaterialFlagIsFlammable),
 			withMass(7.5),
-			withForceDamperK(0.1),
-			withInitialHealth(5.0),
+			withSelfHealthReduction(5.0, 0.5),
+			withSourceDamping(0.5, 0.0),
 		),
-		growsRateK:                       0.5, //0.1,
-		waterDrainK:                      15.0,
+		waterHealthDrainStep:             15.0,
 		surroundingWaterGrowsMultiplierK: 3.0,
 	}
 }
 
 func (m Grass) Type() types.MaterialType {
-	return types.MaterialTypeWood
+	return types.MaterialTypeGrass
 }
 
 func (m Grass) ColorAdjusted(health float64) color.Color {
@@ -48,20 +50,31 @@ func (m Grass) ColorAdjusted(health float64) color.Color {
 	return m.baseColor
 }
 
+func (m Grass) CloseRangeType() types.MaterialCloseRangeType {
+	return types.MaterialCloseRangeTypeSurrounding
+}
+
 func (m Grass) ProcessInternal(env types.TileEnvironment) {
-	if cnt := env.ReduceEnvHealthByType(m.waterDrainK, types.MaterialTypeWater); cnt > 0 {
-		env.ReduceHealth(-m.surroundingWaterGrowsMultiplierK * float64(cnt))
+	if cnt := env.DampEnvHealthByType(m.waterHealthDrainStep, types.MaterialTypeWater); cnt > 0 {
+		env.DampSelfHealth(-m.surroundingWaterGrowsMultiplierK * float64(cnt))
 	} else {
-		env.ReduceHealth(-m.growsRateK)
+		healthChange := m.selfHealthDampStep
+		if env.StateParam(GrassGrowDirParam) == 0 {
+			healthChange *= -1.0
+		}
+		env.DampSelfHealth(healthChange)
 	}
 
 	if health := env.Health(); health >= 100.0 {
-		if env.AddTileGrassStyle(NewGrass()) {
-			env.ReduceHealth(health - m.initialHealth)
+		if env.AddTileGrassStyle(GrassM) {
+			env.DampSelfHealth(health - m.selfHealthInitial)
+			env.UpdateStateParam(GrassGrowDirParam, 0)
+		} else {
+			env.UpdateStateParam(GrassGrowDirParam, 1)
 		}
 	}
 }
 
 func (m Grass) ProcessCollision(env types.CollisionEnvironment) {
-	env.ReflectSourceTargetForces()
+	env.ReflectSourceTargetForces(m.srcForceDamperK)
 }

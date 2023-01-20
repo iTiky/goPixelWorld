@@ -6,9 +6,13 @@ import (
 )
 
 // https://www.vobarian.com/collisions/2dcollisions2.pdf
-func (e *Environment) ReflectSourceTargetForces() bool {
+func (e *Environment) ReflectSourceTargetForces(sourceForceDampK float64) bool {
 	sourceVecBefore, targetVecBefore := e.source.Particle.ForceVector(), e.target.Particle.ForceVector()
 	sourceMass, targetMass := e.source.Particle.Material().Mass(), e.target.Particle.Material().Mass()
+
+	if sourceForceDampK > 0.0 {
+		sourceVecBefore = sourceVecBefore.MultiplyByK(sourceForceDampK)
+	}
 
 	normalVec := pkg.NewVectorByCoordinates(1.0, targetVecBefore.X(), targetVecBefore.Y(), sourceVecBefore.X(), sourceVecBefore.Y())
 	tangentVec := normalVec.Rotate(pkg.Rad90)

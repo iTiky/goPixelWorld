@@ -16,9 +16,10 @@ func NewWood() Wood {
 	return Wood{
 		base: newBase(
 			color.RGBA{R: 0x7A, G: 0x33, B: 0x00, A: 0xFF},
-			withFlags(types.MaterialFlagIsFlammable),
+			withFlags(types.MaterialFlagIsUnmovable, types.MaterialFlagIsFlammable),
 			withMass(1000.0),
-			withForceDamperK(0.2),
+			withSelfHealthReduction(100.0, 0.5),
+			withSourceDamping(0.5, 0.0),
 		),
 	}
 }
@@ -28,6 +29,6 @@ func (m Wood) Type() types.MaterialType {
 }
 
 func (m Wood) ProcessCollision(env types.CollisionEnvironment) {
-	env.ReflectSourceTargetForces()
-	env.DampSourceForce(m.forceDamperK)
+	env.ReflectSourceTargetForces(m.srcForceDamperK)
+	env.DampSelfHealth(m.selfHealthDampStep)
 }

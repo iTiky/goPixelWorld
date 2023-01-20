@@ -7,6 +7,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"golang.org/x/image/colornames"
 
+	"github.com/itiky/goPixelWorld/pkg"
 	worldTypes "github.com/itiky/goPixelWorld/world/types"
 )
 
@@ -94,7 +95,7 @@ func (t *cursorTool) UpdateMaterial(material worldTypes.MaterialI) {
 		baseColor = colornames.Black
 	}
 
-	circleColor := ColorToNRGBA(baseColor)
+	circleColor := pkg.ColorToNRGBA(baseColor)
 	circleColor.A = 0xA0
 
 	t.dotImage.Fill(baseColor)
@@ -142,15 +143,4 @@ func (t *cursorTool) DecRadius() {
 
 func (t *cursorTool) FlipGravity() {
 	t.pendingWorldAction = flipGravityWorldAction{}
-}
-
-func ColorToNRGBA(c color.Color) color.NRGBA {
-	r, g, b, a := c.RGBA()
-
-	return color.NRGBA{
-		R: uint8(r >> 8),
-		G: uint8(g >> 8),
-		B: uint8(b >> 8),
-		A: uint8(a >> 8),
-	}
 }

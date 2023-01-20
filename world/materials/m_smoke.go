@@ -18,7 +18,7 @@ func NewSmoke() Smoke {
 			color.RGBA{R: 0xCD, G: 0xCD, B: 0xCD, A: 0xFF},
 			withFlags(types.MaterialFlagIsGas),
 			withMass(2.0),
-			withHealthDamperStep(0.5),
+			withSelfHealthReduction(100.0, 0.5),
 		),
 	}
 }
@@ -43,7 +43,7 @@ func (m Smoke) ColorAdjusted(health float64) color.Color {
 
 func (m Smoke) ProcessInternal(env types.TileEnvironment) {
 	env.AddReverseGravity()
-	env.ReduceHealth(m.healthDamperStep)
+	env.DampSelfHealth(m.selfHealthDampStep)
 }
 
 func (m Smoke) ProcessCollision(env types.CollisionEnvironment) {
@@ -51,8 +51,5 @@ func (m Smoke) ProcessCollision(env types.CollisionEnvironment) {
 		env.MoveSandSource()
 		return
 	}
-
 	env.SwapSourceTarget()
-
-	return
 }

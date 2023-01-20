@@ -52,6 +52,10 @@ func (e *Environment) IsFlagged(flag types.MaterialFlag) bool {
 	return e.source.Particle.Material().IsFlagged(flag)
 }
 
+func (e *Environment) IsType(mType types.MaterialType) bool {
+	return e.source.Particle.Material().Type() == mType
+}
+
 func (e *Environment) Actions() []types.Action {
 	return e.actions
 }

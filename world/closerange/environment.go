@@ -10,6 +10,8 @@ type Environment struct {
 	sourceHealth float64
 	neighbours   map[pkg.Direction]*types.Tile
 	//
+	tilesInRange []*types.Tile
+	//
 	actions []types.Action
 }
 
@@ -18,6 +20,7 @@ func NewEnvironment(sourceTile *types.Tile) *Environment {
 		source:       sourceTile,
 		sourceHealth: 0.0,
 		neighbours:   make(map[pkg.Direction]*types.Tile, 8),
+		tilesInRange: make([]*types.Tile, 0, 8),
 	}
 	if sourceTile != nil {
 		env.sourceHealth = sourceTile.Particle.Health()
@@ -31,6 +34,7 @@ func (e *Environment) Reset(sourceTile *types.Tile) {
 	e.sourceHealth = sourceTile.Particle.Health()
 	e.actions = e.actions[:0]
 	e.neighbours = make(map[pkg.Direction]*types.Tile, len(e.neighbours))
+	e.tilesInRange = e.tilesInRange[:0]
 }
 
 func (e *Environment) SetNeighbour(dir pkg.Direction, tile *types.Tile) {
@@ -40,12 +44,20 @@ func (e *Environment) SetNeighbour(dir pkg.Direction, tile *types.Tile) {
 	e.neighbours[dir] = tile
 }
 
+func (e *Environment) AddTileInRange(tile *types.Tile) {
+	e.tilesInRange = append(e.tilesInRange, tile)
+}
+
 func (e *Environment) Health() float64 {
 	return e.sourceHealth
 }
 
 func (e *Environment) Position() types.Position {
 	return e.source.Pos
+}
+
+func (e *Environment) StateParam(key string) int {
+	return e.source.Particle.GetStateParam(key)
 }
 
 func (e *Environment) Actions() []types.Action {

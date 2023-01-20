@@ -17,6 +17,9 @@ const (
 	MaterialTypeFire
 	MaterialTypeSteam
 	MaterialTypeGrass
+	MaterialTypeMetal
+	MaterialTypeRock
+	MaterialTypeGraviton
 )
 
 type MaterialFlag int
@@ -28,6 +31,15 @@ const (
 	MaterialFlagIsFire
 	MaterialFlagIsFlammable
 	MaterialFlagIsUnremovable
+	MaterialFlagIsUnmovable
+)
+
+type MaterialCloseRangeType int
+
+const (
+	MaterialCloseRangeTypeNone MaterialCloseRangeType = iota
+	MaterialCloseRangeTypeSurrounding
+	MaterialCloseRangeTypeInCircleRange
 )
 
 type Material interface {
@@ -35,9 +47,13 @@ type Material interface {
 
 	Type() MaterialType
 	ColorAdjusted(health float64) color.Color
-	IsFlagged(flag MaterialFlag) bool
+	IsFlagged(flags ...MaterialFlag) bool
 	Mass() float64
 	InitialHealth() float64
+
+	CloseRangeType() MaterialCloseRangeType
+	CloseRangeCircleRadius() int
+
 	ProcessInternal(env TileEnvironment)
 	ProcessCollision(env CollisionEnvironment)
 }
@@ -48,13 +64,17 @@ type TileEnvironment interface {
 	Health() float64
 	Position() Position
 
-	ReduceHealth(step float64) bool
-	ReduceEnvHealthByFlag(step float64, flagFilters ...MaterialFlag) int
-	ReduceEnvHealthByType(step float64, typeFilters ...MaterialType) int
-	RemoveHealthSelfReductions() bool
+	StateParam(key string) int
+	UpdateStateParam(paramKey string, paramValue int) bool
+
+	DampSelfHealth(step float64) bool
+	DampEnvHealthByFlag(step float64, flagFilters ...MaterialFlag) int
+	DampEnvHealthByType(step float64, typeFilters ...MaterialType) int
+	RemoveSelfHealthDamps() bool
 
 	AddGravity() bool
 	AddReverseGravity() bool
+	AddForceInRange(mag float64, notFlagFilters ...MaterialFlag) bool
 
 	MoveGas() bool
 
@@ -68,11 +88,15 @@ type CollisionEnvironment interface {
 	Actions() []Action
 
 	IsFlagged(flag MaterialFlag) bool
+	IsType(mType MaterialType) bool
 
 	DampSourceForce(k float64) bool
+	DampSourceHealth(step float64, flagFilters ...MaterialFlag) bool
+	DampSelfHealth(step float64) bool
+	DampSelfHealthByMassRate(step float64) bool
 
 	ReflectSourceForce() bool
-	ReflectSourceTargetForces() bool
+	ReflectSourceTargetForces(sourceForceDampK float64) bool
 
 	MoveSandSource() bool
 	MoveLiquidSource() bool

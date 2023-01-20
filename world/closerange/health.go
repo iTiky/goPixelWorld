@@ -5,17 +5,17 @@ import (
 	"github.com/itiky/goPixelWorld/world/types"
 )
 
-func (e *Environment) ReduceHealth(step float64) bool {
+func (e *Environment) DampSelfHealth(step float64) bool {
 	e.sourceHealth -= step
 	e.actions = append(e.actions, types.NewReduceHealth(e.source.Pos, step))
 	return true
 }
 
-func (e *Environment) RemoveHealthSelfReductions() bool {
+func (e *Environment) RemoveSelfHealthDamps() bool {
 	return e.removeHealthReductions(e.source.Pos)
 }
 
-func (e *Environment) ReduceEnvHealthByFlag(step float64, flagFilters ...types.MaterialFlag) int {
+func (e *Environment) DampEnvHealthByFlag(step float64, flagFilters ...types.MaterialFlag) int {
 	actionsCreated := 0
 	for _, dir := range pkg.AllDirections {
 		neighbourTile := e.getNonEmptyNeighbourWithAndFlags(dir, flagFilters...)
@@ -30,7 +30,7 @@ func (e *Environment) ReduceEnvHealthByFlag(step float64, flagFilters ...types.M
 	return actionsCreated
 }
 
-func (e *Environment) ReduceEnvHealthByType(step float64, typeFilters ...types.MaterialType) int {
+func (e *Environment) DampEnvHealthByType(step float64, typeFilters ...types.MaterialType) int {
 	actionsCreated := 0
 	for _, dir := range pkg.AllDirections {
 		neighbourTile := e.getNonEmptyNeighbourWithAndTypes(dir, typeFilters...)

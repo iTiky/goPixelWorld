@@ -103,3 +103,27 @@ func (e *Environment) AddTileGrassStyle(newMaterial types.Material) bool {
 
 	return false
 }
+
+func (e *Environment) UpdateStateParam(paramKey string, paramValue int) bool {
+	if e.source.Particle.GetStateParam(paramKey) == paramValue {
+		return false
+	}
+
+	e.actions = append(e.actions, types.NewUpdateStateParam(e.source.Pos, paramKey, paramValue))
+	return true
+}
+
+func (e *Environment) AddForceInRange(mag float64, notFlagFilters ...types.MaterialFlag) bool {
+	added := false
+	for _, tile := range e.tilesInRange {
+		if tile.Particle.Material().IsFlagged(notFlagFilters...) {
+			continue
+		}
+
+		added = true
+		forceVec := pkg.NewVectorByCoordinates(mag, float64(tile.Pos.X), float64(tile.Pos.Y), float64(e.source.Pos.X), float64(e.source.Pos.Y))
+		e.actions = append(e.actions, types.NewAddForce(tile.Pos, forceVec))
+	}
+
+	return added
+}

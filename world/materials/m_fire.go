@@ -11,18 +11,22 @@ var _ types.Material = Fire{}
 
 type Fire struct {
 	base
-	fireDamageDamperK float64
+	fireDamageDampStep float64
 }
 
 func NewFire() Fire {
 	return Fire{
 		base: newBase(
 			color.RGBA{R: 0xFF, G: 0xAD, B: 0x8B, A: 0xFF},
-			withFlags(types.MaterialFlagIsGas, types.MaterialFlagIsFire),
+			withFlags(
+				types.MaterialFlagIsGas,
+				types.MaterialFlagIsFire,
+			),
 			withMass(1.0),
-			withHealthDamperStep(1.5),
+			withSelfHealthReduction(100.0, 1.5),
+			withSourceDamping(0.0, 5.0),
 		),
-		fireDamageDamperK: 2.0,
+		fireDamageDampStep: 2.0,
 	}
 }
 
@@ -44,28 +48,30 @@ func (m Fire) ColorAdjusted(health float64) color.Color {
 	return m.baseColor
 }
 
-func (m Fire) ProcessInternal(env types.TileEnvironment) {
-	env.ReduceHealth(m.healthDamperStep)
+func (m Fire) CloseRangeType() types.MaterialCloseRangeType {
+	return types.MaterialCloseRangeTypeSurrounding
+}
 
-	env.ReduceEnvHealthByFlag(m.fireDamageDamperK, types.MaterialFlagIsFlammable)
+func (m Fire) ProcessInternal(env types.TileEnvironment) {
+	env.DampSelfHealth(m.selfHealthDampStep)
+	env.DampEnvHealthByFlag(m.fireDamageDampStep, types.MaterialFlagIsFlammable)
 
 	health := env.Health()
 	if health < 30.0 && pkg.RollDice(3) {
-		env.ReplaceTile(NewFire(), types.MaterialFlagIsFlammable)
+		env.ReplaceTile(FireM, types.MaterialFlagIsFlammable)
 	}
 
 	if pkg.RollDice(3) {
-		env.AddTile(NewSmoke())
+		env.AddTile(SmokeM)
 	}
 }
 
 func (m Fire) ProcessCollision(env types.CollisionEnvironment) {
+	env.DampSourceHealth(m.srcHealthDampStep, types.MaterialFlagIsFlammable)
+
 	if env.IsFlagged(types.MaterialFlagIsGas) {
 		env.MoveSandSource()
 		return
 	}
-
-	env.ReflectSourceTargetForces()
-
-	return
+	env.ReflectSourceTargetForces(m.srcForceDamperK)
 }

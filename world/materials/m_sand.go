@@ -18,7 +18,7 @@ func NewSand() Sand {
 			color.RGBA{R: 0xFF, G: 0xD5, B: 0x00, A: 0xFF},
 			withFlags(types.MaterialFlagIsSand),
 			withMass(5.0),
-			withForceDamperK(0.9),
+			withSourceDamping(0.9, 0.0),
 		),
 	}
 }
@@ -37,10 +37,5 @@ func (m Sand) ProcessCollision(env types.CollisionEnvironment) {
 			return
 		}
 	}
-
-	env.ReflectSourceTargetForces()
-
-	env.DampSourceForce(m.forceDamperK)
-
-	return
+	env.ReflectSourceTargetForces(m.srcForceDamperK)
 }

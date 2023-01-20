@@ -122,7 +122,7 @@ func (p Position) String() string {
 	return fmt.Sprintf("Position(%d, %d)", p.X, p.Y)
 }
 
-func PositionsInCircle(x, y, r int) []Position {
+func PositionsInCircle(x, y, r int, includeXY bool) []Position {
 	if r <= 1 {
 		return []Position{NewPosition(x, y)}
 	}
@@ -133,6 +133,9 @@ func PositionsInCircle(x, y, r int) []Position {
 		for yC := y - r; yC <= y+r; yC++ {
 			posDistance := math.Sqrt(math.Pow(float64(xC-x), 2) + math.Pow(float64(yC-y), 2))
 			if posDistance > float64(r) {
+				continue
+			}
+			if !includeXY && xC == x && yC == y {
 				continue
 			}
 

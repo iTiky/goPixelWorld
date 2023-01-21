@@ -3,7 +3,7 @@ module github.com/itiky/goPixelWorld
 go 1.19
 
 require (
-	github.com/hajimehoshi/ebiten/v2 v2.4.15
+	github.com/hajimehoshi/ebiten/v2 v2.4.16
 	golang.org/x/image v0.1.0
 )
 

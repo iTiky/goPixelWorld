@@ -140,7 +140,7 @@ func (k *Keeper) report() {
 			opDurAvg /= time.Duration(opTrack.cnt)
 		}
 		opDurPF := opTrack.duration
-		if opCntPF > 0 {
+		if opCntPF > 1.0 {
 			opDurPF /= time.Duration(opCntPF)
 		}
 

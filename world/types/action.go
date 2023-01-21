@@ -24,14 +24,28 @@ const (
 type Action interface {
 	Type() ActionType
 	GetTilePos() Position
+	GetParticleID() uint64
 }
 
 type ActionBase struct {
-	TilePos Position
+	TilePos    Position
+	ParticleID uint64
 }
 
 func (b ActionBase) GetTilePos() Position {
 	return b.TilePos
+}
+
+func (b ActionBase) GetParticleID() uint64 {
+	return b.ParticleID
+}
+
+type NoopAction struct {
+	ActionBase
+}
+
+func (a NoopAction) Type() ActionType {
+	return ActionTypeNone
 }
 
 type MoveTile struct {
@@ -39,10 +53,11 @@ type MoveTile struct {
 	NewTilePos Position
 }
 
-func NewMoveTile(tilePos, newTilePos Position) MoveTile {
+func NewMoveTile(tilePos Position, tilePID uint64, newTilePos Position) MoveTile {
 	return MoveTile{
 		ActionBase: ActionBase{
-			TilePos: tilePos,
+			TilePos:    tilePos,
+			ParticleID: tilePID,
 		},
 		NewTilePos: newTilePos,
 	}
@@ -54,15 +69,18 @@ func (a MoveTile) Type() ActionType {
 
 type SwapTiles struct {
 	ActionBase
-	SwapTilePos Position
+	SwapTilePos    Position
+	SwapParticleID uint64
 }
 
-func NewSwapTiles(tile1Pos, tile2Pos Position) SwapTiles {
+func NewSwapTiles(tile1Pos Position, tile1PID uint64, tile2Pos Position, tile2PID uint64) SwapTiles {
 	return SwapTiles{
 		ActionBase: ActionBase{
-			TilePos: tile1Pos,
+			TilePos:    tile1Pos,
+			ParticleID: tile1PID,
 		},
-		SwapTilePos: tile2Pos,
+		SwapTilePos:    tile2Pos,
+		SwapParticleID: tile2PID,
 	}
 }
 
@@ -75,10 +93,11 @@ type MultiplyForce struct {
 	K float64
 }
 
-func NewMultiplyForce(tilePos Position, k float64) MultiplyForce {
+func NewMultiplyForce(tilePos Position, tilePID uint64, k float64) MultiplyForce {
 	return MultiplyForce{
 		ActionBase: ActionBase{
-			TilePos: tilePos,
+			TilePos:    tilePos,
+			ParticleID: tilePID,
 		},
 		K: k,
 	}
@@ -94,10 +113,11 @@ type ReflectForce struct {
 	Horizontal bool
 }
 
-func NewReflectForce(tilePos Position, vertical, horizontal bool) ReflectForce {
+func NewReflectForce(tilePos Position, tilePID uint64, vertical, horizontal bool) ReflectForce {
 	return ReflectForce{
 		ActionBase: ActionBase{
-			TilePos: tilePos,
+			TilePos:    tilePos,
+			ParticleID: tilePID,
 		},
 		Vertical:   vertical,
 		Horizontal: horizontal,
@@ -113,10 +133,11 @@ type AlterForce struct {
 	NewForceVec pkg.Vector
 }
 
-func NewAlterForce(tilePos Position, newForceVec pkg.Vector) AlterForce {
+func NewAlterForce(tilePos Position, tilePID uint64, newForceVec pkg.Vector) AlterForce {
 	return AlterForce{
 		ActionBase: ActionBase{
-			TilePos: tilePos,
+			TilePos:    tilePos,
+			ParticleID: tilePID,
 		},
 		NewForceVec: newForceVec,
 	}
@@ -131,10 +152,11 @@ type AddForce struct {
 	ForceVec pkg.Vector
 }
 
-func NewAddForce(tilePos Position, forceVec pkg.Vector) AddForce {
+func NewAddForce(tilePos Position, tilePID uint64, forceVec pkg.Vector) AddForce {
 	return AddForce{
 		ActionBase: ActionBase{
-			TilePos: tilePos,
+			TilePos:    tilePos,
+			ParticleID: tilePID,
 		},
 		ForceVec: forceVec,
 	}
@@ -149,10 +171,11 @@ type RotateForce struct {
 	Angle float64
 }
 
-func NewRotateForce(tilePos Position, angle float64) RotateForce {
+func NewRotateForce(tilePos Position, tilePID uint64, angle float64) RotateForce {
 	return RotateForce{
 		ActionBase: ActionBase{
-			TilePos: tilePos,
+			TilePos:    tilePos,
+			ParticleID: tilePID,
 		},
 		Angle: angle,
 	}
@@ -167,10 +190,11 @@ type ReduceHealth struct {
 	HealthDelta float64
 }
 
-func NewReduceHealth(tilePos Position, healthDelta float64) ReduceHealth {
+func NewReduceHealth(tilePos Position, tilePID uint64, healthDelta float64) ReduceHealth {
 	return ReduceHealth{
 		ActionBase: ActionBase{
-			TilePos: tilePos,
+			TilePos:    tilePos,
+			ParticleID: tilePID,
 		},
 		HealthDelta: healthDelta,
 	}
@@ -185,10 +209,11 @@ type TileReplace struct {
 	Material Material
 }
 
-func NewTileReplace(tilePos Position, material Material) TileReplace {
+func NewTileReplace(tilePos Position, tilePID uint64, material Material) TileReplace {
 	return TileReplace{
 		ActionBase: ActionBase{
-			TilePos: tilePos,
+			TilePos:    tilePos,
+			ParticleID: tilePID,
 		},
 		Material: material,
 	}
@@ -222,10 +247,11 @@ type UpdateStateParam struct {
 	ParamValue int
 }
 
-func NewUpdateStateParam(tilePos Position, paramKey string, paramValue int) UpdateStateParam {
+func NewUpdateStateParam(tilePos Position, tilePID uint64, paramKey string, paramValue int) UpdateStateParam {
 	return UpdateStateParam{
 		ActionBase: ActionBase{
-			TilePos: tilePos,
+			TilePos:    tilePos,
+			ParticleID: tilePID,
 		},
 		ParamKey:   paramKey,
 		ParamValue: paramValue,

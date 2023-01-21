@@ -7,7 +7,7 @@ import (
 
 func (e *Environment) DampSelfHealth(step float64) bool {
 	e.sourceHealth -= step
-	e.actions = append(e.actions, types.NewReduceHealth(e.source.Pos, step))
+	e.actions = append(e.actions, types.NewReduceHealth(e.source.Pos, e.source.Particle.ID(), step))
 	return true
 }
 
@@ -24,7 +24,7 @@ func (e *Environment) DampEnvHealthByFlag(step float64, flagFilters ...types.Mat
 		}
 
 		actionsCreated++
-		e.actions = append(e.actions, types.NewReduceHealth(neighbourTile.Pos, step))
+		e.actions = append(e.actions, types.NewReduceHealth(neighbourTile.Pos, neighbourTile.Particle.ID(), step))
 	}
 
 	return actionsCreated
@@ -39,7 +39,7 @@ func (e *Environment) DampEnvHealthByType(step float64, typeFilters ...types.Mat
 		}
 
 		actionsCreated++
-		e.actions = append(e.actions, types.NewReduceHealth(neighbourTile.Pos, step))
+		e.actions = append(e.actions, types.NewReduceHealth(neighbourTile.Pos, neighbourTile.Particle.ID(), step))
 	}
 
 	return actionsCreated

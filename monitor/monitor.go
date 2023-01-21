@@ -6,16 +6,21 @@ import (
 	"log"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 )
 
 type (
 	Keeper struct {
+		lock sync.Mutex
+		//
 		particlesCnt     uint64
 		particleMovesCnt uint64
 		frames           uint64
-		opDurations      map[string]*opTracking
-		opBuffer         []*opTracking
+		//
+		opDurations map[string]*opTracking
+		opBuffer    []*opTracking
+		opJobCh     chan opTrackingJob
 		//
 		reportPeriod time.Duration
 		prevRun      time.Time
@@ -26,6 +31,11 @@ type (
 		cnt      uint64
 		duration time.Duration
 	}
+
+	opTrackingJob struct {
+		name     string
+		duration time.Duration
+	}
 )
 
 func NewKeeper(reportPeriod time.Duration) (*Keeper, error) {
@@ -34,8 +44,9 @@ func NewKeeper(reportPeriod time.Duration) (*Keeper, error) {
 	}
 
 	k := &Keeper{
-		opDurations:  make(map[string]*opTracking),
 		opBuffer:     make([]*opTracking, 0, 10),
+		opDurations:  make(map[string]*opTracking),
+		opJobCh:      make(chan opTrackingJob, 100000),
 		reportPeriod: reportPeriod,
 		prevRun:      time.Now(),
 	}
@@ -62,16 +73,10 @@ func (k *Keeper) AddParticleMove() {
 func (k *Keeper) TrackOpDuration(opName string) func() {
 	startedAt := time.Now()
 	return func() {
-		opTrack := k.opDurations[opName]
-		if opTrack == nil {
-			opTrack = &opTracking{
-				name: opName,
-			}
+		k.opJobCh <- opTrackingJob{
+			name:     opName,
+			duration: time.Now().Sub(startedAt),
 		}
-		opTrack.cnt++
-		opTrack.duration += time.Since(startedAt)
-
-		k.opDurations[opName] = opTrack
 	}
 }
 
@@ -80,6 +85,21 @@ func (k *Keeper) Start(ctx context.Context) {
 	go func() {
 		for {
 			select {
+			case opJob := <-k.opJobCh:
+				k.lock.Lock()
+
+				opTrack := k.opDurations[opJob.name]
+				if opTrack == nil {
+					opTrack = &opTracking{
+						name: opJob.name,
+					}
+				}
+				opTrack.cnt++
+				opTrack.duration += opJob.duration
+
+				k.opDurations[opJob.name] = opTrack
+
+				k.lock.Unlock()
 			case <-timer.C:
 				k.report()
 			case <-ctx.Done():
@@ -90,6 +110,9 @@ func (k *Keeper) Start(ctx context.Context) {
 }
 
 func (k *Keeper) report() {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+
 	now := time.Now()
 	reportDiff := now.Sub(k.prevRun)
 
@@ -112,9 +135,16 @@ func (k *Keeper) report() {
 	})
 	for _, opTrack := range k.opBuffer {
 		opCntPF := float64(opTrack.cnt) / float64(k.frames)
-		opDurAvg := opTrack.duration / time.Duration(opTrack.cnt)
+		opDurAvg := opTrack.duration
+		if opTrack.cnt > 0 {
+			opDurAvg /= time.Duration(opTrack.cnt)
+		}
+		opDurPF := opTrack.duration
+		if opCntPF > 0 {
+			opDurPF /= time.Duration(opCntPF)
+		}
 
-		str.WriteString(fmt.Sprintf("    %20s:\t%.2f [PF]\t%v [avg]\n", opTrack.name, opCntPF, opDurAvg))
+		str.WriteString(fmt.Sprintf("    %20s:\t%.2f [PF]\t%v [avg]\t%v [total]\n", opTrack.name, opCntPF, opDurAvg, opDurPF))
 
 		opTrack.cnt = 0
 		opTrack.duration = 0

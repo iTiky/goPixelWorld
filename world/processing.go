@@ -7,7 +7,36 @@ import (
 	"github.com/itiky/goPixelWorld/world/types"
 )
 
+func (m *Map) Update() {
+	m.procActions = m.procActions[:0]
+
+	m.iterateNonEmptyTiles(func(tile *types.Tile) {
+		m.procTileWorkerWG.Add(1)
+		m.procTileJobCh <- tile
+	})
+	m.procTileWorkerWG.Wait()
+
+	m.processActions()
+}
+
+func (m *Map) tileWorker() {
+	for tile := range m.procTileJobCh {
+		m.processTile(tile)
+		m.procTileWorkerWG.Done()
+	}
+}
+
+func (m *Map) actionsWorker() {
+
+}
+
 func (m *Map) processTile(tile *types.Tile) {
+	pushActions := func(actions ...types.Action) {
+		m.procActionsLock.Lock()
+		m.procActions = append(m.procActions, actions...)
+		m.procActionsLock.Unlock()
+	}
+
 	if tile.Particle.Material().Type() == types.MaterialTypeBorder {
 		return
 	}
@@ -20,7 +49,7 @@ func (m *Map) processTile(tile *types.Tile) {
 
 	tileEnv := m.buildTileEnv(tile)
 	tile.Particle.Material().ProcessInternal(tileEnv)
-	m.applyActions(tileEnv.Actions()...)
+	pushActions(tileEnv.Actions()...)
 
 	if !tile.HasParticle() {
 		return
@@ -28,20 +57,20 @@ func (m *Map) processTile(tile *types.Tile) {
 
 	targetEmptyTile, collisionEnv := m.buildCollisionEnv(tile)
 	if targetEmptyTile != nil {
-		m.applyActions(types.NewMoveTile(tile.Pos, targetEmptyTile.Pos))
+		pushActions(types.NewMoveTile(tile.Pos, tile.Particle.ID(), targetEmptyTile.Pos))
 	}
 	if collisionEnv != nil {
 		collisionEnv.TargetMaterial().ProcessCollision(collisionEnv)
-		m.applyActions(collisionEnv.Actions()...)
+		pushActions(collisionEnv.Actions()...)
 	}
 }
 
 func (m *Map) buildTileEnv(sourceTile *types.Tile) *closerange.Environment {
-	if m.monitor != nil {
-		defer m.monitor.TrackOpDuration("Map.buildTileEnv")()
-	}
+	//if m.monitor != nil {
+	//	defer m.monitor.TrackOpDuration("Map.buildTileEnv")()
+	//}
 
-	m.tileEnv.Reset(sourceTile)
+	tileEnv := closerange.NewEnvironment(sourceTile)
 	switch sourceTile.Particle.Material().CloseRangeType() {
 	case types.MaterialCloseRangeTypeNone:
 	case types.MaterialCloseRangeTypeSurrounding:
@@ -50,7 +79,7 @@ func (m *Map) buildTileEnv(sourceTile *types.Tile) *closerange.Environment {
 			if !m.isPositionValid(x, y) {
 				return
 			}
-			m.tileEnv.SetNeighbour(dir, m.getTile(x, y))
+			tileEnv.SetNeighbour(dir, m.getTile(x, y))
 		}
 
 		setNeighbor(pkg.DirectionTop, 0, -1)
@@ -73,17 +102,17 @@ func (m *Map) buildTileEnv(sourceTile *types.Tile) *closerange.Environment {
 				continue
 			}
 
-			m.tileEnv.AddTileInRange(neighborTile)
+			tileEnv.AddTileInRange(neighborTile)
 		}
 	}
 
-	return m.tileEnv
+	return tileEnv
 }
 
 func (m *Map) buildCollisionEnv(sourceTile *types.Tile) (*types.Tile, *collision.Environment) {
-	if m.monitor != nil {
-		defer m.monitor.TrackOpDuration("Map.buildCollisionEnv")()
-	}
+	//if m.monitor != nil {
+	//	defer m.monitor.TrackOpDuration("Map.buildCollisionEnv")()
+	//}
 
 	targetTile := sourceTile.TargetTile()
 	if targetTile == nil {
@@ -104,13 +133,13 @@ func (m *Map) buildCollisionEnv(sourceTile *types.Tile) (*types.Tile, *collision
 
 	colDirection := pkg.NewDirectionFromCoords(sourceTile.Pos.X, sourceTile.Pos.Y, targetTile.Pos.X, targetTile.Pos.Y)
 
-	m.collisionEnv.Reset(colDirection, sourceTile, targetTile)
+	collisionEnv := collision.NewEnvironment(colDirection, sourceTile, targetTile)
 	setNeighbor := func(dir pkg.Direction, dx, dy int) {
 		x, y := targetTile.Pos.X+dx, targetTile.Pos.Y+dy
 		if !m.isPositionValid(x, y) {
 			return
 		}
-		m.collisionEnv.SetNeighbour(dir, m.getTile(x, y))
+		collisionEnv.SetNeighbour(dir, m.getTile(x, y))
 	}
 
 	switch colDirection {
@@ -164,79 +193,110 @@ func (m *Map) buildCollisionEnv(sourceTile *types.Tile) (*types.Tile, *collision
 		setNeighbor(pkg.DirectionTopRight, 0, -1)
 	}
 
-	return nil, m.collisionEnv
+	return nil, collisionEnv
 }
 
-func (m *Map) applyActions(actions ...types.Action) {
+func (m *Map) processActions() {
 	if m.monitor != nil {
-		defer m.monitor.TrackOpDuration("Map.applyActions")()
+		defer m.monitor.TrackOpDuration("Map.processActions")()
 	}
 
-	for _, aBz := range actions {
-		tile1Pos := aBz.GetTilePos()
-		tile1 := m.getTile(tile1Pos.X, tile1Pos.Y)
+	getExistingTile := func(pos types.Position, pid uint64) *types.Tile {
+		tile := m.getTile(pos.X, pos.Y)
+		if !tile.HasParticle() || tile.Particle.ID() != pid {
+			return nil
+		}
+		return tile
+	}
 
+	getEmptyTile := func(pos types.Position) *types.Tile {
+		tile := m.getTile(pos.X, pos.Y)
+		if tile.HasParticle() {
+			return nil
+		}
+		return tile
+	}
+
+	for _, aBz := range m.procActions {
 		switch a := aBz.(type) {
 		case types.MultiplyForce:
-			if !tile1.HasParticle() {
+			tile := getExistingTile(a.TilePos, a.ParticleID)
+			if tile == nil {
 				break
 			}
-			tile1.Particle.MultiplyForce(a.K)
+			tile.Particle.MultiplyForce(a.K)
 		case types.ReflectForce:
-			if !tile1.HasParticle() {
+			tile := getExistingTile(a.TilePos, a.ParticleID)
+			if tile == nil {
 				break
 			}
-			tile1.Particle.ReflectForce(a.Horizontal, a.Vertical)
+			tile.Particle.ReflectForce(a.Horizontal, a.Vertical)
 		case types.AddForce:
-			if !tile1.HasParticle() {
+			tile := getExistingTile(a.TilePos, a.ParticleID)
+			if tile == nil {
 				break
 			}
-			tile1.Particle.AddForce(a.ForceVec)
+			tile.Particle.AddForce(a.ForceVec)
 		case types.AlterForce:
-			if !tile1.HasParticle() {
+			tile := getExistingTile(a.TilePos, a.ParticleID)
+			if tile == nil {
 				break
 			}
-			tile1.Particle.SetForce(a.NewForceVec)
+			tile.Particle.SetForce(a.NewForceVec)
 		case types.RotateForce:
-			if !tile1.HasParticle() {
+			tile := getExistingTile(a.TilePos, a.ParticleID)
+			if tile == nil {
 				break
 			}
-			tile1.Particle.RotateForce(a.Angle)
+			tile.Particle.RotateForce(a.Angle)
 		case types.MoveTile:
-			if !tile1.HasParticle() {
+			tile1 := getExistingTile(a.TilePos, a.ParticleID)
+			if tile1 == nil {
+				break
+			}
+			tile2 := getEmptyTile(a.NewTilePos)
+			if tile2 == nil {
 				break
 			}
 			m.moveTile(tile1, a.NewTilePos)
 		case types.SwapTiles:
-			if !tile1.HasParticle() {
+			tile1 := getExistingTile(a.TilePos, a.ParticleID)
+			if tile1 == nil {
 				break
 			}
-			tile2 := m.getTile(a.SwapTilePos.X, a.SwapTilePos.Y)
-			if !tile2.HasParticle() {
+			tile2 := getExistingTile(a.SwapTilePos, a.SwapParticleID)
+			if tile2 == nil {
 				break
 			}
 			m.swapTiles(tile1, tile2)
 		case types.ReduceHealth:
-			if !tile1.HasParticle() {
+			tile := getExistingTile(a.TilePos, a.ParticleID)
+			if tile == nil {
 				break
 			}
-			tile1.Particle.ReduceHealth(a.HealthDelta)
-			if tile1.Particle.IsDestroyed() {
-				m.removeParticle(tile1)
+			tile.Particle.ReduceHealth(a.HealthDelta)
+			if tile.Particle.IsDestroyed() {
+				m.removeParticle(tile)
 			}
 		case types.TileReplace:
-			if !tile1.HasParticle() {
+			tile := getExistingTile(a.TilePos, a.ParticleID)
+			if tile == nil {
 				break
 			}
-			m.removeParticle(tile1)
-			m.createParticle(tile1, a.Material)
+			m.removeParticle(tile)
+			m.createParticle(tile, a.Material)
 		case types.UpdateStateParam:
-			if !tile1.HasParticle() {
+			tile := getExistingTile(a.TilePos, a.ParticleID)
+			if tile == nil {
 				break
 			}
-			tile1.Particle.SetStateParam(a.ParamKey, a.ParamValue)
+			tile.Particle.SetStateParam(a.ParamKey, a.ParamValue)
 		case types.TileAdd:
-			m.createParticle(tile1, a.Material)
+			tile := getEmptyTile(a.TilePos)
+			if tile == nil {
+				break
+			}
+			m.createParticle(tile, a.Material)
 		}
 	}
 }

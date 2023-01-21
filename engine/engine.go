@@ -118,7 +118,11 @@ func (r *Runner) Draw(screen *ebiten.Image) {
 	}
 
 	mouseX, mouseY := ebiten.CursorPosition()
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("[%d, %d]", r.mouseCoordToWorld(mouseX), r.mouseCoordToWorld(mouseY)))
+	fps := ebiten.ActualFPS()
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("[%d, %d]\n%.1f",
+		r.mouseCoordToWorld(mouseX), r.mouseCoordToWorld(mouseY),
+		fps,
+	))
 }
 
 func (r *Runner) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {

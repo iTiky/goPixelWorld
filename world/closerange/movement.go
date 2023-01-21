@@ -20,7 +20,7 @@ func (e *Environment) MoveGas() bool {
 	}
 
 	moveDirAfter := possibleMoveDirs[rand.Intn(len(possibleMoveDirs))]
-	e.actions = append(e.actions, types.NewRotateForce(e.source.Pos, moveDirAfter.Angle()))
+	e.actions = append(e.actions, types.NewRotateForce(e.source.Pos, e.source.Particle.ID(), moveDirAfter.Angle()))
 
 	return true
 }

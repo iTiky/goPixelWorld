@@ -29,8 +29,8 @@ func (e *Environment) ReflectSourceTargetForces(sourceForceDampK float64) bool {
 	targetVecAfter := normalVec.MultiplyByK(targetVecNormalPrAfter).Add(tangentVec.MultiplyByK(targetVecTangentPrAfter))
 
 	e.actions = append(e.actions, []types.Action{
-		types.NewAlterForce(e.source.Pos, sourceVecAfter),
-		types.NewAlterForce(e.target.Pos, targetVecAfter),
+		types.NewAlterForce(e.source.Pos, e.source.Particle.ID(), sourceVecAfter),
+		types.NewAlterForce(e.target.Pos, e.source.Particle.ID(), targetVecAfter),
 	}...)
 
 	return true
@@ -46,7 +46,7 @@ func (e *Environment) ReflectSourceForce() bool {
 	case pkg.DirectionTopRight, pkg.DirectionBottomRight, pkg.DirectionBottomLeft, pkg.DirectionTopLeft:
 		flipV, flipH = true, true
 	}
-	e.actions = append(e.actions, types.NewReflectForce(e.source.Pos, flipV, flipH))
+	e.actions = append(e.actions, types.NewReflectForce(e.source.Pos, e.source.Particle.ID(), flipV, flipH))
 
 	return true
 }

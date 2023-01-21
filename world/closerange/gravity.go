@@ -15,12 +15,12 @@ var (
 )
 
 func (e *Environment) AddGravity() bool {
-	e.actions = append(e.actions, types.NewAddForce(e.source.Pos, gravityDownVec))
+	e.actions = append(e.actions, types.NewAddForce(e.source.Pos, e.source.Particle.ID(), gravityDownVec))
 	return true
 }
 
 func (e *Environment) AddReverseGravity() bool {
-	e.actions = append(e.actions, types.NewAddForce(e.source.Pos, gravityUpVec))
+	e.actions = append(e.actions, types.NewAddForce(e.source.Pos, e.source.Particle.ID(), gravityUpVec))
 	return true
 }
 

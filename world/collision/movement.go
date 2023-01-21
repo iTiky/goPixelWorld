@@ -7,15 +7,15 @@ import (
 
 func (e *Environment) MoveSandSource() bool {
 	if neighbourTile := e.getEmptyNeighbour(pkg.DirectionLeft); neighbourTile != nil {
-		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, neighbourTile.Pos))
+		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, e.source.Particle.ID(), neighbourTile.Pos))
 		return true
 	}
 	if neighbourTile := e.getEmptyNeighbour(pkg.DirectionRight); neighbourTile != nil {
-		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, neighbourTile.Pos))
+		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, e.source.Particle.ID(), neighbourTile.Pos))
 		return true
 	}
 	if neighbourTile := e.getEmptyNeighbour(pkg.DirectionTop); neighbourTile != nil {
-		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, neighbourTile.Pos))
+		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, e.source.Particle.ID(), neighbourTile.Pos))
 		return true
 	}
 
@@ -24,11 +24,11 @@ func (e *Environment) MoveSandSource() bool {
 
 func (e *Environment) MoveLiquidSource() bool {
 	if neighbourTile := e.getEmptyNeighbour(pkg.DirectionLeft); neighbourTile != nil {
-		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, neighbourTile.Pos))
+		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, e.source.Particle.ID(), neighbourTile.Pos))
 		return true
 	}
 	if neighbourTile := e.getEmptyNeighbour(pkg.DirectionRight); neighbourTile != nil {
-		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, neighbourTile.Pos))
+		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, e.source.Particle.ID(), neighbourTile.Pos))
 		return true
 	}
 
@@ -39,15 +39,15 @@ func (e *Environment) MoveLiquidSource() bool {
 	//	spreadDir1, spreadDir2 = pkg.DirectionTopRight, pkg.DirectionTopLeft
 	//}
 	if neighbourTile := e.getEmptyNeighbour(spreadDir1); neighbourTile != nil {
-		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, neighbourTile.Pos))
+		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, e.source.Particle.ID(), neighbourTile.Pos))
 		return true
 	}
 	if neighbourTile := e.getEmptyNeighbour(spreadDir2); neighbourTile != nil {
-		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, neighbourTile.Pos))
+		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, e.source.Particle.ID(), neighbourTile.Pos))
 		return true
 	}
 	if neighbourTile := e.getEmptyNeighbour(pkg.DirectionTop); neighbourTile != nil {
-		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, neighbourTile.Pos))
+		e.actions = append(e.actions, types.NewMoveTile(e.source.Pos, e.source.Particle.ID(), neighbourTile.Pos))
 		return true
 	}
 
@@ -55,6 +55,6 @@ func (e *Environment) MoveLiquidSource() bool {
 }
 
 func (e *Environment) SwapSourceTarget() bool {
-	e.actions = append(e.actions, types.NewSwapTiles(e.source.Pos, e.target.Pos))
+	e.actions = append(e.actions, types.NewSwapTiles(e.source.Pos, e.source.Particle.ID(), e.target.Pos, e.target.Particle.ID()))
 	return true
 }

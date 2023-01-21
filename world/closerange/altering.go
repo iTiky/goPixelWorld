@@ -23,7 +23,7 @@ func (e *Environment) ReplaceTile(newMaterial types.Material, flagFilters ...typ
 
 	replacementTile := tileCandidates[rand.Intn(len(tileCandidates))]
 	e.removeHealthReductions(replacementTile.Pos)
-	e.actions = append(e.actions, types.NewTileReplace(replacementTile.Pos, newMaterial))
+	e.actions = append(e.actions, types.NewTileReplace(replacementTile.Pos, replacementTile.Particle.ID(), newMaterial))
 
 	return true
 }
@@ -53,7 +53,7 @@ func (e *Environment) AddTile(newMaterial types.Material, dirFilters ...pkg.Dire
 }
 
 func (e *Environment) ReplaceSelf(newMaterial types.Material) bool {
-	e.actions = append(e.actions, types.NewTileReplace(e.source.Pos, newMaterial))
+	e.actions = append(e.actions, types.NewTileReplace(e.source.Pos, e.source.Particle.ID(), newMaterial))
 	return true
 }
 
@@ -109,7 +109,7 @@ func (e *Environment) UpdateStateParam(paramKey string, paramValue int) bool {
 		return false
 	}
 
-	e.actions = append(e.actions, types.NewUpdateStateParam(e.source.Pos, paramKey, paramValue))
+	e.actions = append(e.actions, types.NewUpdateStateParam(e.source.Pos, e.source.Particle.ID(), paramKey, paramValue))
 	return true
 }
 
@@ -122,7 +122,7 @@ func (e *Environment) AddForceInRange(mag float64, notFlagFilters ...types.Mater
 
 		added = true
 		forceVec := pkg.NewVectorByCoordinates(mag, float64(tile.Pos.X), float64(tile.Pos.Y), float64(e.source.Pos.X), float64(e.source.Pos.Y))
-		e.actions = append(e.actions, types.NewAddForce(tile.Pos, forceVec))
+		e.actions = append(e.actions, types.NewAddForce(tile.Pos, tile.Particle.ID(), forceVec))
 	}
 
 	return added

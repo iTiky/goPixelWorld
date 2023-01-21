@@ -3,13 +3,18 @@ package world
 import (
 	"fmt"
 	"math/rand"
+	"sync"
 
 	"github.com/itiky/goPixelWorld/monitor"
 	"github.com/itiky/goPixelWorld/pkg"
 	"github.com/itiky/goPixelWorld/world/closerange"
-	"github.com/itiky/goPixelWorld/world/collision"
 	"github.com/itiky/goPixelWorld/world/materials"
 	"github.com/itiky/goPixelWorld/world/types"
+)
+
+const (
+	workersNum          = 16
+	tileWorkerJobChSize = 1000
 )
 
 type MapOption func(*Map) error
@@ -20,10 +25,12 @@ type Map struct {
 	particles map[uint64]*types.Tile
 	grid      [][]*types.Tile
 	//
-	tileEnv      *closerange.Environment
-	collisionEnv *collision.Environment
-	//
 	monitor *monitor.Keeper
+	//
+	procTileWorkerWG sync.WaitGroup
+	procTileJobCh    chan *types.Tile
+	procActions      []types.Action
+	procActionsLock  sync.Mutex
 }
 
 func WithWidth(width int) MapOption {
@@ -62,11 +69,11 @@ func WithMonitor(keeper *monitor.Keeper) MapOption {
 
 func NewMap(opts ...MapOption) (*Map, error) {
 	m := Map{
-		width:        200,
-		height:       200,
-		particles:    make(map[uint64]*types.Tile),
-		tileEnv:      closerange.NewEnvironment(nil),
-		collisionEnv: collision.NewEnvironment(pkg.DirectionTop, nil, nil),
+		width:     200,
+		height:    200,
+		particles: make(map[uint64]*types.Tile),
+		//
+		procTileJobCh: make(chan *types.Tile, tileWorkerJobChSize),
 	}
 	for _, opt := range opts {
 		if err := opt(&m); err != nil {
@@ -87,6 +94,10 @@ func NewMap(opts ...MapOption) (*Map, error) {
 		}
 	}
 
+	for i := 0; i < workersNum; i++ {
+		go m.tileWorker()
+	}
+
 	return &m, nil
 }
 
@@ -98,10 +109,6 @@ func (m *Map) IterateTiles(fn func(tile types.TileI)) {
 	m.iterateNonEmptyTiles(func(tile *types.Tile) {
 		fn(tile)
 	})
-}
-
-func (m *Map) Update() {
-	m.iterateNonEmptyTiles(m.processTile)
 }
 
 func (m *Map) CreateParticles(x, y, radius int, materialBz types.MaterialI, randomForce bool) {

@@ -39,9 +39,9 @@ func main() {
 	}
 
 	worldMap, err := world.NewMap(
-		world.WithWidth(200),
-		world.WithHeight(200),
-		world.WithMonitor(monitorKeeper),
+		world.WithWidth(250),
+		world.WithHeight(250),
+		//world.WithMonitor(monitorKeeper),
 	)
 	if err != nil {
 		log.Fatalf("creating world.Map: %v", err)
@@ -51,7 +51,7 @@ func main() {
 		worldMap,
 		engine.WithScreenSize(1500, 1100),
 		engine.WithEditorUI(materialsAll...),
-		engine.WithMonitor(monitorKeeper),
+		//engine.WithMonitor(monitorKeeper),
 	)
 	if err != nil {
 		log.Fatalf("creating engine.Runner: %v", err)

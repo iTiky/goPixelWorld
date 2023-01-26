@@ -23,6 +23,7 @@ func NewGrass() Grass {
 		base: newBase(
 			color.RGBA{R: 0x04, G: 0xDE, B: 0x1E, A: 0xFF},
 			withFlags(types.MaterialFlagIsFlammable),
+			withCloseRangeType(types.MaterialCloseRangeTypeSurrounding),
 			withMass(7.5),
 			withSelfHealthReduction(5.0, 0.5),
 			withSourceDamping(0.5, 0.0),
@@ -48,10 +49,6 @@ func (m Grass) ColorAdjusted(health float64) color.Color {
 	}
 
 	return m.baseColor
-}
-
-func (m Grass) CloseRangeType() types.MaterialCloseRangeType {
-	return types.MaterialCloseRangeTypeSurrounding
 }
 
 func (m Grass) ProcessInternal(env types.TileEnvironment) {

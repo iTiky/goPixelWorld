@@ -17,9 +17,9 @@ func NewGraviton() Graviton {
 	return Graviton{
 		base: newBase(
 			color.RGBA{R: 0x8F, G: 0x00, B: 0xA2, A: 0xFF},
+			withCloseRangeType(types.MaterialCloseRangeTypeInCircleRange),
 			withMass(1000000.0),
 			withFlags(types.MaterialFlagIsUnmovable),
-			withCloseRangeType(types.MaterialCloseRangeTypeInCircleRange),
 			withCloseRangeCircleR(20),
 		),
 		gravityForceMag: 0.7,

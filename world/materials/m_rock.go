@@ -16,6 +16,7 @@ func NewRock() Rock {
 	return Rock{
 		base: newBase(
 			color.RGBA{R: 0xA7, G: 0x39, B: 0x00, A: 0xFF},
+			withCloseRangeType(types.MaterialCloseRangeTypeSelfOnly),
 			withMass(100.0),
 			withSelfHealthReduction(100.0, 0.5),
 			withSourceDamping(0.9, 0.0),

@@ -18,6 +18,7 @@ func NewSteam() Steam {
 		base: newBase(
 			color.RGBA{R: 0x05, G: 0x00, B: 0xA7, A: 0xFF},
 			withFlags(types.MaterialFlagIsGas),
+			withCloseRangeType(types.MaterialCloseRangeTypeSelfOnly),
 			withMass(5.0),
 			withSelfHealthReduction(100.0, 0.25),
 		),

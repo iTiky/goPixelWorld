@@ -139,12 +139,9 @@ func (k *Keeper) report() {
 		if opTrack.cnt > 0 {
 			opDurAvg /= time.Duration(opTrack.cnt)
 		}
-		opDurPF := opTrack.duration
-		if opCntPF > 1.0 {
-			opDurPF /= time.Duration(opCntPF)
-		}
+		opDurPF := opDurAvg * time.Duration(opCntPF)
 
-		str.WriteString(fmt.Sprintf("    %20s:\t%.2f [PF]\t%v [avg]\t%v [total]\n", opTrack.name, opCntPF, opDurAvg, opDurPF))
+		str.WriteString(fmt.Sprintf("    %20s:\t%.2f [PF]\t%v [avg]\t%v [total PF]\n", opTrack.name, opCntPF, opDurAvg, opDurPF))
 
 		opTrack.cnt = 0
 		opTrack.duration = 0

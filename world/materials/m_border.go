@@ -17,6 +17,7 @@ func NewBorder() Border {
 		base: newBase(
 			color.RGBA{R: 0x1A, G: 0x1A, B: 0x1A, A: 0xFF},
 			withFlags(types.MaterialFlagIsUnremovable),
+			withCloseRangeType(types.MaterialCloseRangeTypeNone),
 			withSourceDamping(0.1, 0.0),
 		),
 	}

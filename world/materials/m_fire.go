@@ -22,6 +22,7 @@ func NewFire() Fire {
 				types.MaterialFlagIsGas,
 				types.MaterialFlagIsFire,
 			),
+			withCloseRangeType(types.MaterialCloseRangeTypeSurrounding),
 			withMass(1.0),
 			withSelfHealthReduction(100.0, 1.5),
 			withSourceDamping(0.0, 5.0),
@@ -46,10 +47,6 @@ func (m Fire) ColorAdjusted(health float64) color.Color {
 	}
 
 	return m.baseColor
-}
-
-func (m Fire) CloseRangeType() types.MaterialCloseRangeType {
-	return types.MaterialCloseRangeTypeSurrounding
 }
 
 func (m Fire) ProcessInternal(env types.TileEnvironment) {

@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	cursorRadiusDef  = 17
+	cursorRadiusDef  = 22
 	cursorRadiusMin  = 5
 	cursorRadiusMax  = 80
 	cursorRadiusStep = 3

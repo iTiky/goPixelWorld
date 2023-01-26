@@ -38,6 +38,7 @@ type MaterialCloseRangeType int
 
 const (
 	MaterialCloseRangeTypeNone MaterialCloseRangeType = iota
+	MaterialCloseRangeTypeSelfOnly
 	MaterialCloseRangeTypeSurrounding
 	MaterialCloseRangeTypeInCircleRange
 )

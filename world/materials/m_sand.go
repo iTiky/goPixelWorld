@@ -17,6 +17,7 @@ func NewSand() Sand {
 		base: newBase(
 			color.RGBA{R: 0xFF, G: 0xD5, B: 0x00, A: 0xFF},
 			withFlags(types.MaterialFlagIsSand),
+			withCloseRangeType(types.MaterialCloseRangeTypeSelfOnly),
 			withMass(5.0),
 			withSourceDamping(0.9, 0.0),
 		),

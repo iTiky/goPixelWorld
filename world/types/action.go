@@ -53,8 +53,8 @@ type MoveTile struct {
 	NewTilePos Position
 }
 
-func NewMoveTile(tilePos Position, tilePID uint64, newTilePos Position) MoveTile {
-	return MoveTile{
+func NewMoveTile(tilePos Position, tilePID uint64, newTilePos Position) *MoveTile {
+	return &MoveTile{
 		ActionBase: ActionBase{
 			TilePos:    tilePos,
 			ParticleID: tilePID,
@@ -73,8 +73,8 @@ type SwapTiles struct {
 	SwapParticleID uint64
 }
 
-func NewSwapTiles(tile1Pos Position, tile1PID uint64, tile2Pos Position, tile2PID uint64) SwapTiles {
-	return SwapTiles{
+func NewSwapTiles(tile1Pos Position, tile1PID uint64, tile2Pos Position, tile2PID uint64) *SwapTiles {
+	return &SwapTiles{
 		ActionBase: ActionBase{
 			TilePos:    tile1Pos,
 			ParticleID: tile1PID,
@@ -93,8 +93,8 @@ type MultiplyForce struct {
 	K float64
 }
 
-func NewMultiplyForce(tilePos Position, tilePID uint64, k float64) MultiplyForce {
-	return MultiplyForce{
+func NewMultiplyForce(tilePos Position, tilePID uint64, k float64) *MultiplyForce {
+	return &MultiplyForce{
 		ActionBase: ActionBase{
 			TilePos:    tilePos,
 			ParticleID: tilePID,
@@ -113,8 +113,8 @@ type ReflectForce struct {
 	Horizontal bool
 }
 
-func NewReflectForce(tilePos Position, tilePID uint64, vertical, horizontal bool) ReflectForce {
-	return ReflectForce{
+func NewReflectForce(tilePos Position, tilePID uint64, vertical, horizontal bool) *ReflectForce {
+	return &ReflectForce{
 		ActionBase: ActionBase{
 			TilePos:    tilePos,
 			ParticleID: tilePID,
@@ -133,8 +133,8 @@ type AlterForce struct {
 	NewForceVec pkg.Vector
 }
 
-func NewAlterForce(tilePos Position, tilePID uint64, newForceVec pkg.Vector) AlterForce {
-	return AlterForce{
+func NewAlterForce(tilePos Position, tilePID uint64, newForceVec pkg.Vector) *AlterForce {
+	return &AlterForce{
 		ActionBase: ActionBase{
 			TilePos:    tilePos,
 			ParticleID: tilePID,
@@ -152,8 +152,8 @@ type AddForce struct {
 	ForceVec pkg.Vector
 }
 
-func NewAddForce(tilePos Position, tilePID uint64, forceVec pkg.Vector) AddForce {
-	return AddForce{
+func NewAddForce(tilePos Position, tilePID uint64, forceVec pkg.Vector) *AddForce {
+	return &AddForce{
 		ActionBase: ActionBase{
 			TilePos:    tilePos,
 			ParticleID: tilePID,
@@ -171,8 +171,8 @@ type RotateForce struct {
 	Angle float64
 }
 
-func NewRotateForce(tilePos Position, tilePID uint64, angle float64) RotateForce {
-	return RotateForce{
+func NewRotateForce(tilePos Position, tilePID uint64, angle float64) *RotateForce {
+	return &RotateForce{
 		ActionBase: ActionBase{
 			TilePos:    tilePos,
 			ParticleID: tilePID,
@@ -190,8 +190,8 @@ type ReduceHealth struct {
 	HealthDelta float64
 }
 
-func NewReduceHealth(tilePos Position, tilePID uint64, healthDelta float64) ReduceHealth {
-	return ReduceHealth{
+func NewReduceHealth(tilePos Position, tilePID uint64, healthDelta float64) *ReduceHealth {
+	return &ReduceHealth{
 		ActionBase: ActionBase{
 			TilePos:    tilePos,
 			ParticleID: tilePID,
@@ -209,8 +209,8 @@ type TileReplace struct {
 	Material Material
 }
 
-func NewTileReplace(tilePos Position, tilePID uint64, material Material) TileReplace {
-	return TileReplace{
+func NewTileReplace(tilePos Position, tilePID uint64, material Material) *TileReplace {
+	return &TileReplace{
 		ActionBase: ActionBase{
 			TilePos:    tilePos,
 			ParticleID: tilePID,
@@ -228,8 +228,8 @@ type TileAdd struct {
 	Material Material
 }
 
-func NewTileAdd(tilePos Position, material Material) TileAdd {
-	return TileAdd{
+func NewTileAdd(tilePos Position, material Material) *TileAdd {
+	return &TileAdd{
 		ActionBase: ActionBase{
 			TilePos: tilePos,
 		},
@@ -247,8 +247,8 @@ type UpdateStateParam struct {
 	ParamValue int
 }
 
-func NewUpdateStateParam(tilePos Position, tilePID uint64, paramKey string, paramValue int) UpdateStateParam {
-	return UpdateStateParam{
+func NewUpdateStateParam(tilePos Position, tilePID uint64, paramKey string, paramValue int) *UpdateStateParam {
+	return &UpdateStateParam{
 		ActionBase: ActionBase{
 			TilePos:    tilePos,
 			ParticleID: tilePID,

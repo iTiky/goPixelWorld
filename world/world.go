@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	workersNum          = 16
-	tileWorkerJobChSize = 1000
+	workersNum          = 32
+	tileWorkerJobChSize = 10000
 )
 
 type MapOption func(*Map) error
@@ -29,8 +29,7 @@ type Map struct {
 	//
 	procTileWorkerWG sync.WaitGroup
 	procTileJobCh    chan *types.Tile
-	procActions      []types.Action
-	procActionsLock  sync.Mutex
+	procActions      [][]types.Action
 }
 
 func WithWidth(width int) MapOption {
@@ -95,7 +94,8 @@ func NewMap(opts ...MapOption) (*Map, error) {
 	}
 
 	for i := 0; i < workersNum; i++ {
-		go m.tileWorker()
+		m.procActions = append(m.procActions, make([]types.Action, 0, tileWorkerJobChSize))
+		go m.tileWorker(i)
 	}
 
 	return &m, nil

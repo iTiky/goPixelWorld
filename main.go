@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"image"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	_ "net/http/pprof"
@@ -25,19 +28,6 @@ func main() {
 		log.Fatalf("monitor.NewKeeper: %v", err)
 	}
 
-	materialsAll := []worldTypes.MaterialI{
-		materials.SandM,
-		materials.WaterM,
-		materials.WoodM,
-		materials.FireM,
-		materials.GrassM,
-		materials.SmokeM,
-		materials.SteamM,
-		materials.MetalM,
-		materials.RockM,
-		materials.GravitonM,
-	}
-
 	worldMap, err := world.NewMap(
 		world.WithWidth(250),
 		world.WithHeight(250),
@@ -45,6 +35,30 @@ func main() {
 	)
 	if err != nil {
 		log.Fatalf("creating world.Map: %v", err)
+	}
+
+	imageData, err := parseImage()
+	if err != nil {
+		log.Fatalf("parsing image: %v", err)
+	}
+	if imageData != nil {
+		if err := worldMap.SetImageData(imageData); err != nil {
+			log.Fatalf("setting image data: %v", err)
+		}
+	}
+
+	materialsAll := []worldTypes.MaterialI{
+		materials.NewSand(),
+		materials.NewWater(),
+		materials.NewWood(),
+		materials.NewFire(),
+		materials.NewGrass(),
+		materials.NewSmoke(),
+		materials.NewSteam(),
+		materials.NewMetal(),
+		materials.NewRock(),
+		materials.NewGraviton(),
+		materials.NewAntiGraviton(),
 	}
 
 	runner, err := engine.NewRunner(
@@ -65,4 +79,28 @@ func main() {
 	if err := runner.Run(); err != nil {
 		log.Fatalf("running engine.Runner: %v", err)
 	}
+}
+
+func parseImage() (image.Image, error) {
+	var filePath string
+
+	if len(os.Args) > 1 {
+		filePath = os.Args[1]
+	}
+	if filePath == "" {
+		return nil, nil
+	}
+
+	f, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("opening file: %w", err)
+	}
+	defer f.Close()
+
+	imageData, _, err := image.Decode(f)
+	if err != nil {
+		return nil, fmt.Errorf("decoding image: %w", err)
+	}
+
+	return imageData, nil
 }

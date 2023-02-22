@@ -9,7 +9,8 @@ import (
 type MaterialType int
 
 const (
-	MaterialTypeBorder MaterialType = iota
+	MaterialTypeNone MaterialType = iota
+	MaterialTypeBorder
 	MaterialTypeWater
 	MaterialTypeSand
 	MaterialTypeWood
@@ -20,6 +21,7 @@ const (
 	MaterialTypeMetal
 	MaterialTypeRock
 	MaterialTypeGraviton
+	MaterialTypeAntiGraviton
 )
 
 type MaterialFlag int

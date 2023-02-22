@@ -16,9 +16,9 @@ func NewBorder() Border {
 	return Border{
 		base: newBase(
 			color.RGBA{R: 0x1A, G: 0x1A, B: 0x1A, A: 0xFF},
-			withFlags(types.MaterialFlagIsUnremovable),
+			withFlags(types.MaterialFlagIsUnremovable, types.MaterialFlagIsUnmovable),
 			withCloseRangeType(types.MaterialCloseRangeTypeNone),
-			withSourceDamping(0.1, 0.0),
+			withSourceDamping(0.2, 0.0),
 		),
 	}
 }
@@ -28,6 +28,5 @@ func (m Border) Type() types.MaterialType {
 }
 
 func (m Border) ProcessCollision(env types.CollisionEnvironment) {
-	env.ReflectSourceForce()
-	env.DampSourceForce(m.srcForceDamperK)
+	env.ReflectSourceTargetForces(m.srcForceDamperK)
 }

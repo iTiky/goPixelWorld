@@ -55,11 +55,11 @@ func (m Fire) ProcessInternal(env types.TileEnvironment) {
 
 	health := env.Health()
 	if health < 30.0 && pkg.RollDice(3) {
-		env.ReplaceTile(FireM, types.MaterialFlagIsFlammable)
+		env.ReplaceTile(AllMaterialsSet[types.MaterialTypeFire], types.MaterialFlagIsFlammable)
 	}
 
 	if pkg.RollDice(3) {
-		env.AddTile(SmokeM)
+		env.AddTile(AllMaterialsSet[types.MaterialTypeSmoke])
 	}
 }
 

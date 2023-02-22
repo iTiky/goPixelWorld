@@ -63,7 +63,7 @@ func (m Grass) ProcessInternal(env types.TileEnvironment) {
 	}
 
 	if health := env.Health(); health >= 100.0 {
-		if env.AddTileGrassStyle(GrassM) {
+		if env.AddTileGrassStyle(AllMaterialsSet[types.MaterialTypeGrass]) {
 			env.DampSelfHealth(health - m.selfHealthInitial)
 			env.UpdateStateParam(GrassGrowDirParam, 0)
 		} else {

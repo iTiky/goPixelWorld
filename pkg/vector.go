@@ -94,9 +94,16 @@ func (v Vector) Reflect(horizontal, vertical bool) Vector {
 }
 
 func (v Vector) MultiplyByK(k float64) Vector {
+	if k >= 0.0 {
+		return Vector{
+			mag: v.mag * k,
+			ang: v.ang,
+		}
+	}
+
 	return Vector{
-		mag: v.mag * k,
-		ang: v.ang,
+		mag: v.mag * math.Abs(k),
+		ang: NormalizeAngle(v.ang + math.Pi),
 	}
 }
 

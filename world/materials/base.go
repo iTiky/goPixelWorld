@@ -7,18 +7,19 @@ import (
 	"github.com/itiky/goPixelWorld/world/types"
 )
 
-var (
-	SandM     = NewSand()
-	WaterM    = NewWater()
-	WoodM     = NewWood()
-	FireM     = NewFire()
-	GrassM    = NewGrass()
-	SmokeM    = NewSmoke()
-	SteamM    = NewSteam()
-	MetalM    = NewMetal()
-	RockM     = NewRock()
-	GravitonM = NewGraviton()
-)
+var AllMaterialsSet = map[types.MaterialType]types.Material{
+	types.MaterialTypeSand:         NewSand(),
+	types.MaterialTypeWater:        NewWater(),
+	types.MaterialTypeWood:         NewWood(),
+	types.MaterialTypeFire:         NewFire(),
+	types.MaterialTypeGrass:        NewGrass(),
+	types.MaterialTypeSmoke:        NewSmoke(),
+	types.MaterialTypeSteam:        NewSteam(),
+	types.MaterialTypeMetal:        NewMetal(),
+	types.MaterialTypeRock:         NewRock(),
+	types.MaterialTypeGraviton:     NewGraviton(),
+	types.MaterialTypeAntiGraviton: NewAntiGraviton(),
+}
 
 type (
 	base struct {

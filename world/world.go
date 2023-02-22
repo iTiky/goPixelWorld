@@ -14,7 +14,7 @@ import (
 
 const (
 	workersNum          = 32
-	tileWorkerJobChSize = 10000
+	tileWorkerJobChSize = 50000
 )
 
 type MapOption func(*Map) error
@@ -80,18 +80,7 @@ func NewMap(opts ...MapOption) (*Map, error) {
 		}
 	}
 
-	m.grid = make([][]*types.Tile, m.width)
-	for x := 0; x < m.width; x++ {
-		m.grid[x] = make([]*types.Tile, m.height)
-		for y := 0; y < m.height; y++ {
-			var material types.Material
-			if x == 0 || y == 0 || x == m.width-1 || y == m.height-1 {
-				material = materials.NewBorder()
-			}
-
-			m.createTile(types.NewPosition(x, y), material)
-		}
-	}
+	m.initGrid(m.width, m.height)
 
 	for i := 0; i < workersNum; i++ {
 		m.procActions = append(m.procActions, make([]types.Action, 0, tileWorkerJobChSize))
@@ -124,7 +113,7 @@ func (m *Map) CreateParticles(x, y, radius int, materialBz types.MaterialI, rand
 
 		tile := m.getTile(pos.X, pos.Y)
 		if tile.HasParticle() {
-			if material.Type() != types.MaterialTypeFire {
+			if mType := material.Type(); mType != types.MaterialTypeFire && mType != types.MaterialTypeAntiGraviton {
 				continue
 			}
 			if !m.removeParticle(tile) {
@@ -164,4 +153,26 @@ func (m *Map) FlipGravity() {
 
 func (m *Map) isPositionValid(x, y int) bool {
 	return x >= 0 && y >= 0 && x < m.width && y < m.height
+}
+
+func (m *Map) initGrid(width, height int) {
+	m.width = width
+	m.height = height
+
+	for pID := range m.particles {
+		delete(m.particles, pID)
+	}
+
+	m.grid = make([][]*types.Tile, m.width)
+	for x := 0; x < m.width; x++ {
+		m.grid[x] = make([]*types.Tile, m.height)
+		for y := 0; y < m.height; y++ {
+			var material types.Material
+			if x == 0 || y == 0 || x == m.width-1 || y == m.height-1 {
+				material = materials.NewBorder()
+			}
+
+			m.createTile(types.NewPosition(x, y), material)
+		}
+	}
 }

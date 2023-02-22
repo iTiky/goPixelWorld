@@ -49,7 +49,7 @@ func (m Steam) ProcessInternal(env types.TileEnvironment) {
 
 	if env.Health() < 10.0 && pkg.RollDice(3) {
 		env.RemoveSelfHealthDamps()
-		env.ReplaceSelf(WaterM)
+		env.ReplaceSelf(AllMaterialsSet[types.MaterialTypeWater])
 	}
 }
 

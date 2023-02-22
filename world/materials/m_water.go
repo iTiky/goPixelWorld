@@ -39,7 +39,7 @@ func (m Water) ProcessInternal(env types.TileEnvironment) {
 
 	if env.Health() <= 0.0 {
 		env.RemoveSelfHealthDamps()
-		env.ReplaceSelf(SteamM)
+		env.ReplaceSelf(AllMaterialsSet[types.MaterialTypeSteam])
 	}
 }
 

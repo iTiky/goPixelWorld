@@ -28,10 +28,10 @@ func (e *Environment) ReflectSourceTargetForces(sourceForceDampK float64) bool {
 	sourceVecAfter := normalVec.MultiplyByK(sourceVecNormalPrAfter).Add(tangentVec.MultiplyByK(sourceVecTangentPrAfter))
 	targetVecAfter := normalVec.MultiplyByK(targetVecNormalPrAfter).Add(tangentVec.MultiplyByK(targetVecTangentPrAfter))
 
-	e.actions = append(e.actions, []types.Action{
-		types.NewAlterForce(e.source.Pos, e.source.Particle.ID(), sourceVecAfter),
-		types.NewAlterForce(e.target.Pos, e.source.Particle.ID(), targetVecAfter),
-	}...)
+	e.actions = append(e.actions, types.NewAlterForce(e.source.Pos, e.source.Particle.ID(), sourceVecAfter))
+	if !e.target.Particle.Material().IsFlagged(types.MaterialFlagIsUnmovable) {
+		e.actions = append(e.actions, types.NewAlterForce(e.target.Pos, e.target.Particle.ID(), targetVecAfter))
+	}
 
 	return true
 }

@@ -64,8 +64,12 @@ func (p *Particle) GetStateParam(key string) int {
 	return p.state[key]
 }
 
-func (p *Particle) IncStateParam(key string) {
-	p.state[key] = p.state[key] + 1
+func (p *Particle) IncStateParam(key string) int {
+	v := p.state[key]
+	v++
+	p.state[key] = v
+
+	return v
 }
 
 func (p *Particle) DecStateParam(key string) {
@@ -77,8 +81,11 @@ func (p *Particle) OnMove() {
 }
 
 func (p *Particle) UpdateState() {
-	p.IncStateParam(ParticleStateParamSteady)
-	p.limitForce()
+	steadyCnt := p.IncStateParam(ParticleStateParamSteady)
+	if steadyCnt > 10 {
+		p.SetStateParam(ParticleStateParamSteady, 0)
+		p.forceVec = pkg.NewVector(0, 0)
+	}
 }
 
 func (p *Particle) AddForce(force pkg.Vector) {

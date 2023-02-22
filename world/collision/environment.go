@@ -33,8 +33,11 @@ func (e *Environment) Reset(direction pkg.Direction, sourceTile, targetTile *typ
 	e.direction = direction
 	e.source = sourceTile
 	e.target = targetTile
-	e.neighbours = make(map[pkg.Direction]*types.Tile, len(e.neighbours))
 	e.actions = e.actions[:0]
+
+	for dir := range e.neighbours {
+		e.neighbours[dir] = nil
+	}
 }
 
 func (e *Environment) TargetMaterial() types.Material {

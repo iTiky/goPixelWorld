@@ -33,8 +33,11 @@ func (e *Environment) Reset(sourceTile *types.Tile) {
 	e.source = sourceTile
 	e.sourceHealth = sourceTile.Particle.Health()
 	e.actions = e.actions[:0]
-	e.neighbours = make(map[pkg.Direction]*types.Tile, len(e.neighbours))
 	e.tilesInRange = e.tilesInRange[:0]
+
+	for dir := range e.neighbours {
+		e.neighbours[dir] = nil
+	}
 }
 
 func (e *Environment) SetNeighbour(dir pkg.Direction, tile *types.Tile) {

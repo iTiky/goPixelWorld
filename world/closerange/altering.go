@@ -1,6 +1,7 @@
 package closerange
 
 import (
+	"math"
 	"math/rand"
 	"sort"
 
@@ -114,6 +115,13 @@ func (e *Environment) UpdateStateParam(paramKey string, paramValue int) bool {
 }
 
 func (e *Environment) AddForceInRange(mag float64, notFlagFilters ...types.MaterialFlag) bool {
+	magAbs := math.Abs(mag)
+
+	rotateForceVec := false
+	if mag < 0.0 {
+		rotateForceVec = true
+	}
+
 	added := false
 	for _, tile := range e.tilesInRange {
 		if tile.Particle.Material().IsFlagged(notFlagFilters...) {
@@ -121,7 +129,10 @@ func (e *Environment) AddForceInRange(mag float64, notFlagFilters ...types.Mater
 		}
 
 		added = true
-		forceVec := pkg.NewVectorByCoordinates(mag, float64(tile.Pos.X), float64(tile.Pos.Y), float64(e.source.Pos.X), float64(e.source.Pos.Y))
+		forceVec := pkg.NewVectorByCoordinates(magAbs, float64(tile.Pos.X), float64(tile.Pos.Y), float64(e.source.Pos.X), float64(e.source.Pos.Y))
+		if rotateForceVec {
+			forceVec = forceVec.Rotate(math.Pi)
+		}
 		e.actions = append(e.actions, types.NewAddForce(tile.Pos, tile.Particle.ID(), forceVec))
 	}
 

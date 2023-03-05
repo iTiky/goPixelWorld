@@ -8,6 +8,7 @@ import (
 
 var _ types.Material = Border{}
 
+// Border is a static non-removable Particle.
 type Border struct {
 	base
 }

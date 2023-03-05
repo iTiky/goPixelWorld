@@ -8,6 +8,7 @@ import (
 
 var _ types.Material = Sand{}
 
+// Sand spreads like a sand.
 type Sand struct {
 	base
 }

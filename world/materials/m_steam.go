@@ -9,6 +9,8 @@ import (
 
 var _ types.Material = Steam{}
 
+// Steam moves up and dissipates with time.
+// The dissipation can produce a new Water Particle.
 type Steam struct {
 	base
 }

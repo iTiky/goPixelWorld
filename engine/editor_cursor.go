@@ -12,21 +12,23 @@ import (
 )
 
 const (
-	cursorRadiusDef  = 22
-	cursorRadiusMin  = 5
-	cursorRadiusMax  = 80
-	cursorRadiusStep = 3
+	cursorRadiusDef  = 22 // circle cursor default radius
+	cursorRadiusMin  = 5  // circle cursor min radius
+	cursorRadiusMax  = 80 // circle cursor max radius
+	cursorRadiusStep = 3  // circle cursor radius inc/dec step
 )
 
+// cursorTool keeps the currently selected Material tool data and pending World input actions.
 type cursorTool struct {
-	material           worldTypes.MaterialI
-	radius             int
-	applyForce         bool
-	dotImage           *ebiten.Image
-	circleColor        color.Color
-	pendingWorldAction worldAction
+	material           worldTypes.MaterialI // current Material selected (nil if not)
+	radius             int                  // current circle type radius
+	applyForce         bool                 // if "apply random force" is toggled
+	dotImage           *ebiten.Image        // dot type image
+	circleColor        color.Color          // current tools color
+	pendingWorldAction worldAction          // the next World input action to apply (nil if none)
 }
 
+// newCursorTool creates a new Cursor tool.
 func newCursorTool() *cursorTool {
 	const (
 		tileWidth  = 5
@@ -40,6 +42,7 @@ func newCursorTool() *cursorTool {
 	}
 }
 
+// Draw ...
 func (t *cursorTool) Draw(screen *ebiten.Image, drawOpts *ebiten.DrawImageOptions) {
 	mouseX, mouseY := ebiten.CursorPosition()
 
@@ -58,6 +61,7 @@ func (t *cursorTool) Draw(screen *ebiten.Image, drawOpts *ebiten.DrawImageOption
 	}
 }
 
+// OnPress generates a new World input action.
 func (t *cursorTool) OnPress(mouseX, mouseY int) {
 	if t.material != nil {
 		t.pendingWorldAction = createParticlesWorldAction{
@@ -76,6 +80,7 @@ func (t *cursorTool) OnPress(mouseX, mouseY int) {
 	}
 }
 
+// GetPendingWorldAction ...
 func (t *cursorTool) GetPendingWorldAction() worldAction {
 	if t.pendingWorldAction == nil {
 		return nil
@@ -87,6 +92,7 @@ func (t *cursorTool) GetPendingWorldAction() worldAction {
 	return a
 }
 
+// UpdateMaterial updates the cursor color on Material change.
 func (t *cursorTool) UpdateMaterial(material worldTypes.MaterialI) {
 	var baseColor color.Color
 	if material != nil {
@@ -103,22 +109,27 @@ func (t *cursorTool) UpdateMaterial(material worldTypes.MaterialI) {
 	t.circleColor = circleColor
 }
 
+// EnableCircle switches the cursor to the circle mode.
 func (t *cursorTool) EnableCircle() {
 	t.radius = cursorRadiusDef
 }
 
+// EnableDot switches the cursor to the dot mode.
 func (t *cursorTool) EnableDot() {
 	t.radius = 1
 }
 
+// EnableRandomForce enables the "apply random force" mode.
 func (t *cursorTool) EnableRandomForce() {
 	t.applyForce = true
 }
 
+// DisableRandomForce disables the "apply random force" mode.
 func (t *cursorTool) DisableRandomForce() {
 	t.applyForce = false
 }
 
+// IncRadius increments the circle radius for the circle mode.
 func (t *cursorTool) IncRadius() {
 	if t.radius == 1 {
 		return
@@ -130,6 +141,7 @@ func (t *cursorTool) IncRadius() {
 	}
 }
 
+// DecRadius decrements the circle radius for the circle mode.
 func (t *cursorTool) DecRadius() {
 	if t.radius == 1 {
 		return
@@ -141,6 +153,7 @@ func (t *cursorTool) DecRadius() {
 	}
 }
 
+// FlipGravity generates a new World input action.
 func (t *cursorTool) FlipGravity() {
 	t.pendingWorldAction = flipGravityWorldAction{}
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/itiky/goPixelWorld/world/types"
 )
 
+// ReflectSourceTargetForces reflects the source and the target Particle force Vectors based on collision angle and mass ratio.
 // https://www.vobarian.com/collisions/2dcollisions2.pdf
 func (e *Environment) ReflectSourceTargetForces(sourceForceDampK float64) bool {
 	sourceVecBefore, targetVecBefore := e.source.Particle.ForceVector(), e.target.Particle.ForceVector()
@@ -36,6 +37,8 @@ func (e *Environment) ReflectSourceTargetForces(sourceForceDampK float64) bool {
 	return true
 }
 
+// ReflectSourceForce reflects the source Particle force Vector based on collision direction.
+// A simple logic with horizontal / vertical / both flips.
 func (e *Environment) ReflectSourceForce() bool {
 	flipV, flipH := false, false
 	switch e.direction {

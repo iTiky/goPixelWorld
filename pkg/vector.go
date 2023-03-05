@@ -5,11 +5,13 @@ import (
 	"math"
 )
 
+// Vector defines a math vector which state is defined by magnitude and angle (normalized).
 type Vector struct {
 	mag float64
 	ang float64
 }
 
+// NewVector builds a new Vector.
 func NewVector(magnitude, angle float64) Vector {
 	return Vector{
 		mag: magnitude,
@@ -17,6 +19,7 @@ func NewVector(magnitude, angle float64) Vector {
 	}
 }
 
+// NewVectorByCoordinates builds a new Vector from coordinates.
 func NewVectorByCoordinates(magnitude, x0, y0, x1, y1 float64) Vector {
 	return Vector{
 		mag: magnitude,
@@ -24,22 +27,27 @@ func NewVectorByCoordinates(magnitude, x0, y0, x1, y1 float64) Vector {
 	}
 }
 
+// Magnitude returns the magnitude.
 func (v Vector) Magnitude() float64 {
 	return v.mag
 }
 
+// Angle returns the angle.
 func (v Vector) Angle() float64 {
 	return v.ang
 }
 
+// X returns the X projection.
 func (v Vector) X() float64 {
 	return v.mag * math.Cos(v.ang)
 }
 
+// Y returns the Y projection.
 func (v Vector) Y() float64 {
 	return v.mag * math.Sin(v.ang)
 }
 
+// IsZero checks if the Vector is empty.
 func (v Vector) IsZero() bool {
 	if v.mag == 0.0 {
 		return true
@@ -48,6 +56,7 @@ func (v Vector) IsZero() bool {
 	return false
 }
 
+// SetMagnitude sets the magnitude.
 func (v Vector) SetMagnitude(mag float64) Vector {
 	return Vector{
 		mag: mag,
@@ -55,6 +64,7 @@ func (v Vector) SetMagnitude(mag float64) Vector {
 	}
 }
 
+// Add adds two Vectors.
 func (v Vector) Add(v2 Vector) Vector {
 	if v2.IsZero() {
 		return v
@@ -78,6 +88,7 @@ func (v Vector) Add(v2 Vector) Vector {
 	}
 }
 
+// Reflect returns the reflected Vector.
 func (v Vector) Reflect(horizontal, vertical bool) Vector {
 	vx, vy := v.X(), v.Y()
 	if horizontal {
@@ -93,6 +104,7 @@ func (v Vector) Reflect(horizontal, vertical bool) Vector {
 	}
 }
 
+// MultiplyByK alters the Vector's magnitude.
 func (v Vector) MultiplyByK(k float64) Vector {
 	if k >= 0.0 {
 		return Vector{
@@ -107,6 +119,7 @@ func (v Vector) MultiplyByK(k float64) Vector {
 	}
 }
 
+// Rotate returns the rotated by angle Vector.
 func (v Vector) Rotate(angleRad float64) Vector {
 	return Vector{
 		mag: v.mag,
@@ -114,6 +127,7 @@ func (v Vector) Rotate(angleRad float64) Vector {
 	}
 }
 
+// DotProduct returns the dot product of two vectors (projection).
 func (v Vector) DotProduct(v2 Vector) float64 {
 	return v.X()*v2.X() + v.Y()*v2.Y()
 }

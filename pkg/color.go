@@ -4,6 +4,7 @@ import (
 	"image/color"
 )
 
+// ColorToNRGBA converts the color to the 8-bit model.
 func ColorToNRGBA(c color.Color) color.NRGBA {
 	r, g, b, a := c.RGBA()
 

@@ -1,5 +1,8 @@
 package pkg
 
+// Direction defines a relative to smth direction.
+// It is used to build the CloseRange environment (neighbours relation to the source Particle) and
+// the Collision environment (from which side the source Particle is colliding with the target one).
 type Direction int
 
 const (
@@ -15,10 +18,11 @@ const (
 
 var AllDirections = []Direction{DirectionTop, DirectionTopRight, DirectionRight, DirectionBottomRight, DirectionBottom, DirectionBottomLeft, DirectionLeft, DirectionTopLeft}
 
+// Direction angle sectors ranges.
 var (
-	angleRadTop         = DegToRadAngle(270.0 - 45.0/2.0)
-	angleRadTopRight    = DegToRadAngle(270.0 + 45.0/2.0)
-	angleRadRight       = DegToRadAngle(0.000 - 45.0/2.0)
+	angleRadTop         = DegToRadAngle(270.0 - 45.0/2.0) // Top sector start
+	angleRadTopRight    = DegToRadAngle(270.0 + 45.0/2.0) // Top sector end and Top-Right start
+	angleRadRight       = DegToRadAngle(0.000 - 45.0/2.0) // etc
 	angleRadBottomRight = DegToRadAngle(0.000 + 45.0/2.0)
 	angleRadBottom      = DegToRadAngle(90.00 - 45.0/2.0)
 	angleRadBottomLeft  = DegToRadAngle(90.00 + 45.0/2.0)
@@ -26,6 +30,7 @@ var (
 	angleRadTopLeft     = DegToRadAngle(180.0 + 45.0/2.0)
 )
 
+// NewDirectionFromAngle returns a new Direction based on angle.
 func NewDirectionFromAngle(angleRad float64) Direction {
 	angleRad = NormalizeAngle(angleRad)
 
@@ -48,6 +53,7 @@ func NewDirectionFromAngle(angleRad float64) Direction {
 	return DirectionTop
 }
 
+// NewDirectionFromCoords returns a new Direction based on Positions.
 func NewDirectionFromCoords(fromX, fromY, toX, toY int) Direction {
 	dirVec := NewVectorByCoordinates(0,
 		float64(fromX), float64(fromY),
@@ -57,6 +63,7 @@ func NewDirectionFromCoords(fromX, fromY, toX, toY int) Direction {
 	return NewDirectionFromAngle(dirVec.Angle())
 }
 
+// Angle returns the corresponding angle.
 func (d Direction) Angle() (angleRad float64) {
 	switch d {
 	case DirectionTop:
@@ -80,6 +87,7 @@ func (d Direction) Angle() (angleRad float64) {
 	return 0
 }
 
+// Sector returns a set of Directions in a sector (close to {d} within depth).
 func (d Direction) Sector(depth uint) []Direction {
 	if depth >= 4 {
 		return AllDirections
@@ -105,6 +113,7 @@ func (d Direction) Sector(depth uint) []Direction {
 	return neighbours
 }
 
+// Next returns the next Direction (clockwise).
 func (d Direction) Next() Direction {
 	dNext := d + 1
 	if dNext > 7 {
@@ -114,6 +123,7 @@ func (d Direction) Next() Direction {
 	return dNext
 }
 
+// Rotate180 returns the inverted Direction.
 func (d Direction) Rotate180() Direction {
 	return (d + 4) % 8
 }

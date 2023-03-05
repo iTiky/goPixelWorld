@@ -13,42 +13,51 @@ import (
 	worldTypes "github.com/itiky/goPixelWorld/world/types"
 )
 
+// Tool Tile rendering defaults
 const (
-	toolTileWidth  = 88
-	toolTileHeight = 32
+	toolTileWidth  = 88 // tool tile width
+	toolTileHeight = 32 // tool tile height
 	//
-	toolTileMargin      = 10
-	toolTileOffsetRight = 10
+	toolTileMargin      = 10 // margin between tools
+	toolTileOffsetRight = 10 // offset from the right window side
 	//
-	toolTextOffsetLeft = 10
-	toolTestOffsetTop  = 23
+	toolTextOffsetLeft = 10 // tool text left offset (from tool's Tile)
+	toolTestOffsetTop  = 23 // tool text top offset (from tool's Tile)
 	//
-	fontDPI = 72
+	fontDPI = 72 // font rendering DPI
 )
 
 var (
-	lastToolID          = -1
-	toggleToolOffColor  = color.RGBA{R: 0x2B, G: 0x2B, B: 0x2B, A: 0xFF}
-	toggleToolOnColor   = color.RGBA{R: 0x00, G: 0x3C, B: 0x18, A: 0xFF}
-	toggleToolFontColor = color.RGBA{R: 0xE5, G: 0xE5, B: 0xE5, A: 0xFF}
-	toggleToolFont      font.Face
+	// The last unique tool ID
+	lastToolID = -1
+	// Toggle tools defaults
+	toggleToolOffColor  = color.RGBA{R: 0x2B, G: 0x2B, B: 0x2B, A: 0xFF} // OFF color
+	toggleToolOnColor   = color.RGBA{R: 0x00, G: 0x3C, B: 0x18, A: 0xFF} // ON color
+	toggleToolFontColor = color.RGBA{R: 0xE5, G: 0xE5, B: 0xE5, A: 0xFF} // font color
+	toggleToolFont      font.Face                                        // font
 )
 
+// toolTile defines an interface for all Tile tools.
 type toolTile interface {
+	// OnClick is a tool callback on mouse click.
 	OnClick(cursorX, cursorY int) bool
+	// Layout updates a tool rendering params on window resize.
 	Layout(screenWidth, screenHeight int)
+	// Draw draws a tool.
 	Draw(screen *ebiten.Image, drawOpts *ebiten.DrawImageOptions)
 }
 
+// toolBase defines common fields for all tools.
 type toolBase struct {
-	id           int
-	tileX, tileY float64
-	textX, textY int
-	image        *ebiten.Image
-	text         string
-	toggled      bool
+	id           int           // unique ID
+	tileX, tileY float64       // top-left Tile coordinates
+	textX, textY int           // top-left Tile's font coordinates
+	image        *ebiten.Image // tool image
+	text         string        // tool text
+	toggled      bool          // is toggled flag
 }
 
+// Layout ...
 func (t *toolBase) Layout(screenWidth, screenHeight int) {
 	tileWidth, tileHeight := t.image.Size()
 
@@ -61,6 +70,7 @@ func (t *toolBase) Layout(screenWidth, screenHeight int) {
 	}
 }
 
+// Draw ...
 func (t *toolBase) Draw(screen *ebiten.Image, drawOpts *ebiten.DrawImageOptions) {
 	drawOpts.GeoM.Reset()
 	drawOpts.GeoM.Translate(t.tileX, t.tileY)
@@ -72,6 +82,7 @@ func (t *toolBase) Draw(screen *ebiten.Image, drawOpts *ebiten.DrawImageOptions)
 	}
 }
 
+// isCursorOver returns true if the mouse cursor is over this tool.
 func (t *toolBase) isCursorOver(cursorX, cursorY int) bool {
 	tileWidth, tileHeight := t.image.Size()
 
@@ -79,6 +90,7 @@ func (t *toolBase) isCursorOver(cursorX, cursorY int) bool {
 		cursorY >= int(t.tileY) && cursorY <= int(t.tileY)+tileHeight
 }
 
+// toggleOn changes a tool rendering and state on toggle ON.
 func (t *toolBase) toggleOn() bool {
 	if t.toggled {
 		return false
@@ -90,6 +102,7 @@ func (t *toolBase) toggleOn() bool {
 	return true
 }
 
+// toggleOff changes a tool rendering and state on toggle OFF.
 func (t *toolBase) toggleOff() bool {
 	if !t.toggled {
 		return false
@@ -101,6 +114,7 @@ func (t *toolBase) toggleOff() bool {
 	return true
 }
 
+// materialTile defines a Material pick tool.
 type materialTile struct {
 	toolBase
 	material worldTypes.MaterialI
@@ -131,6 +145,7 @@ func (t *materialTile) OnClick(cursorX, cursorY int) bool {
 	return true
 }
 
+// removeToggleTile defines a removal tool
 type removeToggleTile struct {
 	toolBase
 	callback func(m worldTypes.MaterialI)
@@ -172,6 +187,7 @@ func (t *removeToggleTile) ToggleOff() {
 	t.toggleOff()
 }
 
+// genericToggleTile defines a generic toggle ON/OFF tool.
 type genericToggleTile struct {
 	toolBase
 	callbackOn  func()
@@ -214,6 +230,7 @@ func (t *genericToggleTile) Toggle() {
 	}
 }
 
+// nextToolID returns the next unique tool ID.
 func nextToolID() int {
 	lastToolID++
 
@@ -221,6 +238,7 @@ func nextToolID() int {
 }
 
 func init() {
+	// Load the font from Ebiten example
 	tt, err := opentype.Parse(fonts.MPlus1pRegular_ttf)
 	if err != nil {
 		log.Fatal("Parsing font:", err)

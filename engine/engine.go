@@ -14,24 +14,26 @@ import (
 
 var _ ebiten.Game = &Runner{}
 
+// RunnerOption defines the Runner constructor options.
 type RunnerOption func(r *Runner) error
 
+// Runner keeps the renderer state and implements the Ebiten Game interface.
 type Runner struct {
-	worldMap            *world.Map
-	editor              *editor
-	screenWidthInitial  int
-	screenHeightInitial int
-	//
-	screenWidth  int
-	screenHeight int
-	//
-	tileSize     float64
-	tilesCache   map[color.Color]*ebiten.Image
-	tileDrawOpts *ebiten.DrawImageOptions
-	//
+	worldMap            *world.Map // the World
+	editor              *editor    // the Editor
+	screenWidthInitial  int        // initial screen width
+	screenHeightInitial int        // initial screen height
+	// Current state
+	screenWidth  int                           // the current screen layout width
+	screenHeight int                           // the current screen layout height
+	tileSize     float64                       // the current Tile size relative to (screenWidth, screenHeight)
+	tilesCache   map[color.Color]*ebiten.Image // cached pixels
+	tileDrawOpts *ebiten.DrawImageOptions      // reused object to save some time on rendering
+	// External services
 	monitor *monitor.Keeper
 }
 
+// WithScreenSize defines the window size.
 func WithScreenSize(width, height int) RunnerOption {
 	return func(r *Runner) error {
 		if width <= 0 || height <= 0 {
@@ -44,6 +46,7 @@ func WithScreenSize(width, height int) RunnerOption {
 	}
 }
 
+// WithMonitor adds an external monitor.
 func WithMonitor(monitor *monitor.Keeper) RunnerOption {
 	return func(r *Runner) error {
 		if monitor == nil {
@@ -56,6 +59,7 @@ func WithMonitor(monitor *monitor.Keeper) RunnerOption {
 	}
 }
 
+// NewRunner builds a new Runner.
 func NewRunner(worldMap *world.Map, opts ...RunnerOption) (*Runner, error) {
 	const (
 		screenWidthInitial  = 800
@@ -88,15 +92,19 @@ func NewRunner(worldMap *world.Map, opts ...RunnerOption) (*Runner, error) {
 	return r, nil
 }
 
+// Run implements the ebiten.Game interface.
 func (r *Runner) Run() error {
 	return ebiten.RunGame(r)
 }
 
+// Update implements the ebiten.Game interface.
+// Handles the mouse / keyboard inputs.
 func (r *Runner) Update() error {
 	if r.monitor != nil {
 		defer r.monitor.TrackOpDuration("Runner.Update")()
 	}
 
+	// Handle the inputs (pass the action to the World)
 	if r.editor != nil {
 		r.editor.HandleInput()
 		r.applyWorldAction(r.editor.GetNextWorldAction())
@@ -105,18 +113,23 @@ func (r *Runner) Update() error {
 	return nil
 }
 
+// Draw implements the ebiten.Game interface.
+// Renders the grid and editor.
 func (r *Runner) Draw(screen *ebiten.Image) {
 	if r.monitor != nil {
 		defer r.monitor.TrackOpDuration("Runner.Draw")()
 		r.monitor.AddFrame()
 	}
 
+	// Render pixels
 	drawnPixels := r.drawTiles(screen)
 
+	// Render the editor
 	if r.editor != nil {
 		r.editor.Draw(screen)
 	}
 
+	// Render the debug text message
 	mouseX, mouseY := ebiten.CursorPosition()
 	fps := ebiten.ActualFPS()
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("[%d, %d]\n%.1f\n%d",
@@ -126,6 +139,9 @@ func (r *Runner) Draw(screen *ebiten.Image) {
 	))
 }
 
+// Layout implements the ebiten.Game interface.
+// Called on window resize.
+// Calculates the new Tile size and drops Tiles caches (does the same for the Editor).
 func (r *Runner) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	if r.screenWidth != outsideWidth || r.screenHeight != outsideHeight {
 		mapWidth, mapHeight := r.worldMap.Size()
@@ -147,18 +163,20 @@ func (r *Runner) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHei
 	return outsideWidth, outsideHeight
 }
 
+// drawTiles iterates over all non-empty Tiles and draws them.
+// Utilizes the image cache to save some FPSs.
 func (r *Runner) drawTiles(screen *ebiten.Image) int64 {
 	drawnPixels := int64(0)
 
-	r.worldMap.ExportState(func(pixel worldTypes.Pixel) {
-		tileImage, found := r.tilesCache[pixel.Color]
+	r.worldMap.ExportState(func(tile worldTypes.TileI) {
+		tileImage, found := r.tilesCache[tile.Color()]
 		if !found {
 			tileImage = ebiten.NewImage(int(r.tileSize), int(r.tileSize))
-			tileImage.Fill(pixel.Color)
-			r.tilesCache[pixel.Color] = tileImage
+			tileImage.Fill(tile.Color())
+			r.tilesCache[tile.Color()] = tileImage
 		}
 
-		tileDrawX, tileDrawY := float64(pixel.X)*r.tileSize, float64(pixel.Y)*r.tileSize
+		tileDrawX, tileDrawY := float64(tile.X())*r.tileSize, float64(tile.Y())*r.tileSize
 		r.tileDrawOpts.GeoM.Reset()
 		r.tileDrawOpts.GeoM.Translate(tileDrawX, tileDrawY)
 
@@ -170,6 +188,7 @@ func (r *Runner) drawTiles(screen *ebiten.Image) int64 {
 	return drawnPixels
 }
 
+// applyWorldAction passes through editor input to the World by type.
 func (r *Runner) applyWorldAction(actionBz worldAction) {
 	if actionBz == nil {
 		return
@@ -193,6 +212,7 @@ func (r *Runner) applyWorldAction(actionBz worldAction) {
 	}
 }
 
+// mouseCoordToWorld converts the mouse coordinate to the World coordinate.
 func (r *Runner) mouseCoordToWorld(c int) int {
 	return int(float64(c) / r.tileSize)
 }

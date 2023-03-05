@@ -8,6 +8,8 @@ import (
 
 var _ types.Material = Water{}
 
+// Water spreads like water.
+// It puts out the Fire and makes the Grass grow faster.
 type Water struct {
 	base
 	surroundingFireDamperStep float64

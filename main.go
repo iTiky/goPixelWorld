@@ -81,6 +81,7 @@ func main() {
 	}
 }
 
+// parseImage parses an image by path (if the corresponding CLI args is provided).
 func parseImage() (image.Image, error) {
 	var filePath string
 

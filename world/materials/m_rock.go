@@ -8,6 +8,7 @@ import (
 
 var _ types.Material = Rock{}
 
+// Rock can be destructed by other Particles (including itself) depending on how heavy they are.
 type Rock struct {
 	base
 }

@@ -9,6 +9,8 @@ import (
 	"github.com/itiky/goPixelWorld/world/types"
 )
 
+// ReplaceTile replaces a neighbour Tile with a new Particle.
+// Candidate is selected randomly from non-empty neighbours matching the filter.
 func (e *Environment) ReplaceTile(newMaterial types.Material, flagFilters ...types.MaterialFlag) bool {
 	var tileCandidates []*types.Tile
 	for _, dir := range pkg.AllDirections {
@@ -29,6 +31,8 @@ func (e *Environment) ReplaceTile(newMaterial types.Material, flagFilters ...typ
 	return true
 }
 
+// AddTile adds a new neighbour Particle.
+// Candidate is selected randomly from empty neighbours matching the filter.
 func (e *Environment) AddTile(newMaterial types.Material, dirFilters ...pkg.Direction) bool {
 	var dirs []pkg.Direction
 	if len(dirFilters) > 0 {
@@ -53,11 +57,16 @@ func (e *Environment) AddTile(newMaterial types.Material, dirFilters ...pkg.Dire
 	return false
 }
 
+// ReplaceSelf replaces the source Particle with a new one.
 func (e *Environment) ReplaceSelf(newMaterial types.Material) bool {
 	e.actions = append(e.actions, types.NewTileReplace(e.source.Pos, e.source.Particle.ID(), newMaterial))
 	return true
 }
 
+// AddTileGrassStyle adds a new grass-like neighbour.
+// Candidate select criteria:
+//   - three close empty Tiles (for ex.: Top-Left, Top and Top-Right);
+//   - random;
 func (e *Environment) AddTileGrassStyle(newMaterial types.Material) bool {
 	var dirs []pkg.Direction
 	for dir, tile := range e.neighbours {
@@ -105,6 +114,7 @@ func (e *Environment) AddTileGrassStyle(newMaterial types.Material) bool {
 	return false
 }
 
+// UpdateStateParam updates the internal source Particle state param.
 func (e *Environment) UpdateStateParam(paramKey string, paramValue int) bool {
 	if e.source.Particle.GetStateParam(paramKey) == paramValue {
 		return false
@@ -114,6 +124,8 @@ func (e *Environment) UpdateStateParam(paramKey string, paramValue int) bool {
 	return true
 }
 
+// AddForceInRange adds a force Vector in a circle range.
+// If {mag} is LT 0, force is reflected.
 func (e *Environment) AddForceInRange(mag float64, notFlagFilters ...types.MaterialFlag) bool {
 	magAbs := math.Abs(mag)
 

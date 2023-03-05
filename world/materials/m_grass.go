@@ -12,6 +12,9 @@ const (
 	GrassGrowDirParam = "grass_grow_dir"
 )
 
+// Grass tries to grow and it is flammable.
+// The growth can be accelerated by water (Grass consumes Water).
+// If it can't grow, it grows old and "dies".
 type Grass struct {
 	base
 	waterHealthDrainStep             float64

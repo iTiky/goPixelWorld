@@ -8,6 +8,7 @@ import (
 
 var _ types.Material = Wood{}
 
+// Wood is a soft and flammable material.
 type Wood struct {
 	base
 }

@@ -5,16 +5,18 @@ import (
 	"github.com/itiky/goPixelWorld/world/types"
 )
 
+// Environment defines the state for a Particle self-processing (altering itself and surrounding neighbours based on Material logic).
 type Environment struct {
-	source       *types.Tile
-	sourceHealth float64
-	neighbours   map[pkg.Direction]*types.Tile
+	source       *types.Tile                   // source Tile
+	sourceHealth float64                       // source health (the current value since output Actions can rely on it)
+	neighbours   map[pkg.Direction]*types.Tile // neighbour tiles by a relative to source direction
 	//
-	tilesInRange []*types.Tile
+	tilesInRange []*types.Tile // tiles in a circle range
 	//
-	actions []types.Action
+	actions []types.Action // processing output
 }
 
+// NewEnvironment creates a new empty Environment.
 func NewEnvironment(sourceTile *types.Tile) *Environment {
 	env := &Environment{
 		source:       sourceTile,
@@ -29,6 +31,8 @@ func NewEnvironment(sourceTile *types.Tile) *Environment {
 	return env
 }
 
+// Reset the Environment state.
+// Used to reduce the amount of allocations.
 func (e *Environment) Reset(sourceTile *types.Tile) {
 	e.source = sourceTile
 	e.sourceHealth = sourceTile.Particle.Health()
@@ -40,6 +44,7 @@ func (e *Environment) Reset(sourceTile *types.Tile) {
 	}
 }
 
+// SetNeighbour sets the neighbour by relative direction.
 func (e *Environment) SetNeighbour(dir pkg.Direction, tile *types.Tile) {
 	if tile == nil {
 		return
@@ -47,26 +52,32 @@ func (e *Environment) SetNeighbour(dir pkg.Direction, tile *types.Tile) {
 	e.neighbours[dir] = tile
 }
 
+// AddTileInRange adds a neighbour in a circle range.
 func (e *Environment) AddTileInRange(tile *types.Tile) {
 	e.tilesInRange = append(e.tilesInRange, tile)
 }
 
+// Health returns the current source Particle health.
 func (e *Environment) Health() float64 {
 	return e.sourceHealth
 }
 
+// Position returns the source Particle position.
 func (e *Environment) Position() types.Position {
 	return e.source.Pos
 }
 
+// StateParam returns the source Particle internal state param.
 func (e *Environment) StateParam(key string) int {
 	return e.source.Particle.GetStateParam(key)
 }
 
+// Actions returns the env output Actions.
 func (e *Environment) Actions() []types.Action {
 	return e.actions
 }
 
+// getEmptyNeighbour returns an empty neighbour Tile by direction.
 func (e *Environment) getEmptyNeighbour(dir pkg.Direction) *types.Tile {
 	neighbourTile := e.neighbours[dir]
 	if neighbourTile == nil {
@@ -80,6 +91,7 @@ func (e *Environment) getEmptyNeighbour(dir pkg.Direction) *types.Tile {
 	return neighbourTile
 }
 
+// getNonEmptyNeighbour returns a non-empty neighbour Tile by direction.
 func (e *Environment) getNonEmptyNeighbour(dir pkg.Direction) *types.Tile {
 	neighbourTile := e.neighbours[dir]
 	if neighbourTile == nil {
@@ -93,6 +105,7 @@ func (e *Environment) getNonEmptyNeighbour(dir pkg.Direction) *types.Tile {
 	return neighbourTile
 }
 
+// getNonEmptyNeighbourWithAndFlags returns a non-empty neighbour Tile by direction matching MaterialFlag.
 func (e *Environment) getNonEmptyNeighbourWithAndFlags(dir pkg.Direction, flagFilters ...types.MaterialFlag) *types.Tile {
 	neighbourTile := e.getNonEmptyNeighbour(dir)
 	if neighbourTile == nil {
@@ -108,6 +121,7 @@ func (e *Environment) getNonEmptyNeighbourWithAndFlags(dir pkg.Direction, flagFi
 	return neighbourTile
 }
 
+// getNonEmptyNeighbourWithAndTypes returns a non-empty neighbour Tile by direction matching MaterialType.
 func (e *Environment) getNonEmptyNeighbourWithAndTypes(dir pkg.Direction, typeFilters ...types.MaterialType) *types.Tile {
 	neighbourTile := e.getNonEmptyNeighbour(dir)
 	if neighbourTile == nil {

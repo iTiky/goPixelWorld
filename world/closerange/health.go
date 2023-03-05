@@ -5,16 +5,19 @@ import (
 	"github.com/itiky/goPixelWorld/world/types"
 )
 
+// DampSelfHealth alters the source Particle health.
 func (e *Environment) DampSelfHealth(step float64) bool {
 	e.sourceHealth -= step
 	e.actions = append(e.actions, types.NewReduceHealth(e.source.Pos, e.source.Particle.ID(), step))
 	return true
 }
 
+// RemoveSelfHealthDamps removes previously added source Particle health reduction Actions.
 func (e *Environment) RemoveSelfHealthDamps() bool {
 	return e.removeHealthReductions(e.source.Pos)
 }
 
+// DampEnvHealthByFlag alters neighbour(s) health (all non-empty filtered).
 func (e *Environment) DampEnvHealthByFlag(step float64, flagFilters ...types.MaterialFlag) int {
 	actionsCreated := 0
 	for _, dir := range pkg.AllDirections {
@@ -30,6 +33,7 @@ func (e *Environment) DampEnvHealthByFlag(step float64, flagFilters ...types.Mat
 	return actionsCreated
 }
 
+// DampEnvHealthByType alters neighbour(s) health (all non-empty filtered).
 func (e *Environment) DampEnvHealthByType(step float64, typeFilters ...types.MaterialType) int {
 	actionsCreated := 0
 	for _, dir := range pkg.AllDirections {

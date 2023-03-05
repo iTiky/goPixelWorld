@@ -55,6 +55,11 @@ Brown particle which doesn't move, but can be destroyed by other heavier particl
 Purple particle which doesn't move and attracts other particles.
 Has a limited range of attraction.
 
+### Anti-Graviton
+
+Light blue particle which doesn't move and pushes away other particles.
+Has a limited range of action.
+
 ## Controls
 
 ### Mouse

@@ -7,6 +7,7 @@ import (
 	"github.com/itiky/goPixelWorld/world/types"
 )
 
+// AllMaterialsSet is set by type of all known Materials.
 var AllMaterialsSet = map[types.MaterialType]types.Material{
 	types.MaterialTypeSand:         NewSand(),
 	types.MaterialTypeWater:        NewWater(),
@@ -22,25 +23,27 @@ var AllMaterialsSet = map[types.MaterialType]types.Material{
 }
 
 type (
+	// base defines common fields and method for all Materials.
 	base struct {
-		flags     map[types.MaterialFlag]bool
-		baseColor color.Color
-		//
-		mass float64
-		//
-		selfHealthInitial  float64
-		selfHealthDampStep float64
-		//
-		srcForceDamperK   float64
-		srcHealthDampStep float64
-		//
-		closeRangeType    types.MaterialCloseRangeType
-		closeRangeCircleR int
+		// Base params
+		flags     map[types.MaterialFlag]bool // Material properties set
+		baseColor color.Color                 // the main Particle's color
+		mass      float64                     // Particle's mass
+		// Collision processing
+		srcForceDamperK   float64 // source Particle force Vector damper K (the one who has collided to us)
+		srcHealthDampStep float64 // source Particle health damper step
+		// Self-processing
+		selfHealthInitial  float64                      // Particle's initial health
+		selfHealthDampStep float64                      // Particle health change step
+		closeRangeType     types.MaterialCloseRangeType // the type of CloseRange environment required for self-processing
+		closeRangeCircleR  int                          // the circle area radius requirement for the CloseRange environment
 	}
 
+	// baseOpt defines a Material constructor option
 	baseOpt func(*base)
 )
 
+// withFlags sets a Material flags (properties)
 func withFlags(flags ...types.MaterialFlag) baseOpt {
 	return func(m *base) {
 		for _, flag := range flags {
@@ -49,12 +52,14 @@ func withFlags(flags ...types.MaterialFlag) baseOpt {
 	}
 }
 
+// withMass sets a Material mass.
 func withMass(mass float64) baseOpt {
 	return func(m *base) {
 		m.mass = mass
 	}
 }
 
+// withSourceDamping sets the source Particle damping coefs for collision processing.
 func withSourceDamping(forceK, healthStep float64) baseOpt {
 	return func(m *base) {
 		m.srcForceDamperK = forceK
@@ -62,18 +67,21 @@ func withSourceDamping(forceK, healthStep float64) baseOpt {
 	}
 }
 
+// withCloseRangeType sets the CloseRange environment build required type for self-processing.
 func withCloseRangeType(closeRangeType types.MaterialCloseRangeType) baseOpt {
 	return func(m *base) {
 		m.closeRangeType = closeRangeType
 	}
 }
 
+// withCloseRangeCircleR sets the circle area radius for self-processing.
 func withCloseRangeCircleR(r int) baseOpt {
 	return func(m *base) {
 		m.closeRangeCircleR = r
 	}
 }
 
+// withSelfHealthReduction sets the initial and damper step health params for self-processing.
 func withSelfHealthReduction(initial, dampStep float64) baseOpt {
 	return func(m *base) {
 		m.selfHealthInitial = initial
@@ -81,6 +89,7 @@ func withSelfHealthReduction(initial, dampStep float64) baseOpt {
 	}
 }
 
+// newBase creates a new base Material with defaults.
 func newBase(baseColor color.Color, opts ...baseOpt) base {
 	m := base{
 		flags:             make(map[types.MaterialFlag]bool),
@@ -95,6 +104,8 @@ func newBase(baseColor color.Color, opts ...baseOpt) base {
 
 	return m
 }
+
+/* The following methods partially implements the types.Material interface */
 
 func (m base) Color() color.Color {
 	return m.baseColor

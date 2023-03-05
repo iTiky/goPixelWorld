@@ -8,6 +8,7 @@ import (
 
 var _ types.Material = Smoke{}
 
+// Smoke moves up and dissipates with time.
 type Smoke struct {
 	base
 }

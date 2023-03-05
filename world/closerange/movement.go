@@ -7,6 +7,8 @@ import (
 	"github.com/itiky/goPixelWorld/world/types"
 )
 
+// MoveGas moves the source Particle up for gas-like Materials.
+// Move to the randomly selected empty Tile in the upper direction sector (Top-Left + Top + Top-Right).
 func (e *Environment) MoveGas() bool {
 	possibleMoveDirs := make([]pkg.Direction, 0, 5)
 	for _, dir := range pkg.DirectionTop.Sector(1) {

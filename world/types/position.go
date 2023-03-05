@@ -7,10 +7,12 @@ import (
 	"github.com/itiky/goPixelWorld/pkg"
 )
 
+// Position wraps the coordinates.
 type Position struct {
 	X, Y int
 }
 
+// NewPosition creates a new Position.
 func NewPosition(x, y int) Position {
 	return Position{
 		X: x,
@@ -18,10 +20,13 @@ func NewPosition(x, y int) Position {
 	}
 }
 
+// Equal checks equality.
 func (p Position) Equal(p2 Position) bool {
 	return p.X == p2.X && p.Y == p2.Y
 }
 
+// CreatePathTo creates a path to the target Position (discrete line approximation).
+// A variation of Dijkstra's algo.
 func (p Position) CreatePathTo(toPos Position, xMax, yMax int) (path []Position) {
 	if toPos.Equal(p) {
 		return nil
@@ -122,6 +127,7 @@ func (p Position) String() string {
 	return fmt.Sprintf("Position(%d, %d)", p.X, p.Y)
 }
 
+// PositionsInCircle returns new Positions in the circle area.
 func PositionsInCircle(x, y, r int, includeXY bool) []Position {
 	if r <= 1 {
 		return []Position{NewPosition(x, y)}

@@ -8,6 +8,7 @@ import (
 
 var _ types.Material = AntiGraviton{}
 
+// AntiGraviton pushes away other Particles in a circle area.
 type AntiGraviton struct {
 	base
 	antiGravityForceMag float64

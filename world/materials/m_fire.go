@@ -9,6 +9,8 @@ import (
 
 var _ types.Material = Fire{}
 
+// Fire burns itself and surrounding burnable neighbours.
+// When Fire health is low it replaces itself with the Smoke.
 type Fire struct {
 	base
 	fireDamageDampStep float64

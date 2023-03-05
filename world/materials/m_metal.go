@@ -8,6 +8,7 @@ import (
 
 var _ types.Material = Metal{}
 
+// Metal is very strong and reflects other Particles with a very low force damping.
 type Metal struct {
 	base
 }

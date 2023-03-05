@@ -8,6 +8,7 @@ import (
 	"github.com/itiky/goPixelWorld/world/materials"
 )
 
+// SetImageData inits the Map with image Particles based on the closest Material color.
 func (m *Map) SetImageData(imageData image.Image) error {
 	imageData = m.resizeImage(200, 200, imageData)
 
@@ -35,6 +36,7 @@ func (m *Map) SetImageData(imageData image.Image) error {
 	return nil
 }
 
+// resizeImage resizes an image based on limits.
 func (m *Map) resizeImage(widthMax, heightMax int, srcImage image.Image) image.Image {
 	srcImageWidth := srcImage.Bounds().Max.X - srcImage.Bounds().Min.X
 	srcImageHeight := srcImage.Bounds().Max.Y - srcImage.Bounds().Min.Y

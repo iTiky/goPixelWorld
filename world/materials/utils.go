@@ -7,6 +7,7 @@ import (
 	"github.com/itiky/goPixelWorld/world/types"
 )
 
+// FindClosestMaterialByColor returns the closest by color Material.
 func FindClosestMaterialByColor(c color.Color) types.Material {
 	c1R, c1G, c1B, _ := c.RGBA()
 

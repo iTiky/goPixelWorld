@@ -8,6 +8,7 @@ import (
 
 var _ types.Material = Graviton{}
 
+// Graviton attracts other Particles in a circle area.
 type Graviton struct {
 	base
 	gravityForceMag float64

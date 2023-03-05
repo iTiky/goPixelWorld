@@ -9,15 +9,17 @@ import (
 
 var _ types.CollisionEnvironment = &Environment{}
 
+// Environment defines the state for a Particle-Particle collision processing.
 type Environment struct {
-	direction  pkg.Direction
-	source     *types.Tile
-	target     *types.Tile
-	neighbours map[pkg.Direction]*types.Tile
+	direction  pkg.Direction                 // collision direction (relative to the target, from which side the source is flying from)
+	source     *types.Tile                   // source Particle (the one who wants to move to the target's Position)
+	target     *types.Tile                   // target Particle
+	neighbours map[pkg.Direction]*types.Tile // neighbour Particles by a relative to source -> target direction
 	//
-	actions []types.Action
+	actions []types.Action // output Actions
 }
 
+// NewEnvironment creates a new empty Environment.
 func NewEnvironment(direction pkg.Direction, sourceTile, targetTile *types.Tile) *Environment {
 	e := Environment{
 		direction:  direction,
@@ -29,6 +31,8 @@ func NewEnvironment(direction pkg.Direction, sourceTile, targetTile *types.Tile)
 	return &e
 }
 
+// Reset the Environment state.
+// Used to reduce the amount of allocations.
 func (e *Environment) Reset(direction pkg.Direction, sourceTile, targetTile *types.Tile) {
 	e.direction = direction
 	e.source = sourceTile
@@ -40,10 +44,12 @@ func (e *Environment) Reset(direction pkg.Direction, sourceTile, targetTile *typ
 	}
 }
 
+// TargetMaterial returns the target Particle Material.
 func (e *Environment) TargetMaterial() types.Material {
 	return e.target.Particle.Material()
 }
 
+// SetNeighbour sets the target neighbor by direction.
 func (e *Environment) SetNeighbour(dir pkg.Direction, tile *types.Tile) {
 	if tile == nil {
 		return
@@ -51,14 +57,17 @@ func (e *Environment) SetNeighbour(dir pkg.Direction, tile *types.Tile) {
 	e.neighbours[dir] = tile
 }
 
+// IsFlagged checks if the source Particle has MaterialFlag.
 func (e *Environment) IsFlagged(flag types.MaterialFlag) bool {
 	return e.source.Particle.Material().IsFlagged(flag)
 }
 
+// IsType checks if the source Particle Material is MaterialType.
 func (e *Environment) IsType(mType types.MaterialType) bool {
 	return e.source.Particle.Material().Type() == mType
 }
 
+// Actions returns the current output Actions.
 func (e *Environment) Actions() []types.Action {
 	return e.actions
 }
@@ -78,6 +87,7 @@ func (e *Environment) String() string {
 	return str.String()
 }
 
+// getEmptyNeighbour returns an empty target neighbour by direction.
 func (e *Environment) getEmptyNeighbour(dir pkg.Direction) *types.Tile {
 	neighbourTile := e.neighbours[dir]
 	if neighbourTile == nil {

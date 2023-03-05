@@ -189,26 +189,27 @@ func (r *Runner) drawTiles(screen *ebiten.Image) int64 {
 }
 
 // applyWorldAction passes through editor input to the World by type.
-func (r *Runner) applyWorldAction(actionBz worldAction) {
+// Method transforms the engine coordinates and sizes to the World's.
+func (r *Runner) applyWorldAction(actionBz worldTypes.InputAction) {
 	if actionBz == nil {
 		return
 	}
 
 	switch action := actionBz.(type) {
-	case createParticlesWorldAction:
-		x := int(float64(action.mouseX) / r.tileSize)
-		y := int(float64(action.mouseY) / r.tileSize)
-		radius := int(float64(action.mouseRadius) / r.tileSize)
+	case worldTypes.CreateParticlesInputAction:
+		action.X = int(float64(action.X) / r.tileSize)
+		action.Y = int(float64(action.Y) / r.tileSize)
+		action.Radius = int(float64(action.Radius) / r.tileSize)
 
-		r.worldMap.CreateParticles(x, y, radius, action.material, action.applyForce)
-	case deleteParticlesWorldAction:
-		x := int(float64(action.mouseX) / r.tileSize)
-		y := int(float64(action.mouseY) / r.tileSize)
-		radius := int(float64(action.mouseRadius) / r.tileSize)
+		r.worldMap.PushInputAction(action)
+	case worldTypes.DeleteParticlesInputAction:
+		action.X = int(float64(action.X) / r.tileSize)
+		action.Y = int(float64(action.Y) / r.tileSize)
+		action.Radius = int(float64(action.Radius) / r.tileSize)
 
-		r.worldMap.RemoveParticles(x, y, radius)
-	case flipGravityWorldAction:
-		r.worldMap.FlipGravity()
+		r.worldMap.PushInputAction(action)
+	case worldTypes.FlipGravityInputAction:
+		r.worldMap.PushInputAction(action)
 	}
 }
 

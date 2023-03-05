@@ -2,12 +2,9 @@ package world
 
 import (
 	"fmt"
-	"math/rand"
 	"sync"
 
 	"github.com/itiky/goPixelWorld/monitor"
-	"github.com/itiky/goPixelWorld/pkg"
-	"github.com/itiky/goPixelWorld/world/closerange"
 	"github.com/itiky/goPixelWorld/world/types"
 )
 
@@ -41,6 +38,9 @@ type Map struct {
 	procAckCh chan struct{}
 	// The next Map state to export
 	procOutput []types.Pixel
+
+	/* Input state */
+	inputActions []types.InputAction
 
 	/* External services */
 	monitor *monitor.Keeper
@@ -112,85 +112,31 @@ func (m *Map) Size() (int, int) {
 // ExportState exports the current Map state.
 // Waits for the current processing round to end and starts a new one after the export is done.
 func (m *Map) ExportState(fn func(pixel types.TileI)) {
+	// Wait for the previous processing round to finish
 	m.processingDone()
 	defer m.processingStart()
 
+	// Export
 	for i := 0; i < len(m.procOutput); i++ {
 		if !m.procOutput[i].Ready {
 			break
 		}
 		fn(m.procOutput[i])
 	}
-}
 
-// CreateParticles adds new Particle(s) to the Map.
-// If {radius} is GT 1, creates a set of Particles in a circle area.
-// If {randomForce} is enabled, applies a random force to a new Particle(s).
-func (m *Map) CreateParticles(x, y, radius int, materialBz types.MaterialI, randomForce bool) {
-	m.processingDone()
-	defer m.processingStart()
-
-	for _, pos := range types.PositionsInCircle(x, y, radius, true) {
-		// Skip out-of-range Positions
-		if !m.isPositionValid(pos.X, pos.Y) {
-			continue
-		}
-
-		// Skip an unknown Material
-		material, ok := materialBz.(types.Material)
-		if !ok {
-			continue
-		}
-
-		// If a target Tile has a particle, remove it (if it is removable)
-		tile := m.getTile(pos.X, pos.Y)
-		if tile.HasParticle() {
-			if mType := material.Type(); mType != types.MaterialTypeFire && mType != types.MaterialTypeAntiGraviton {
-				continue
-			}
-			if !m.removeParticle(tile) {
-				continue
-			}
-		}
-		m.createParticle(tile, material)
-
-		// Apply an initial random force
-		if randomForce {
-			forceVec := pkg.NewVector(
-				float64(rand.Int31n(5)),
-				pkg.RandomAngle(),
-			)
-			tile.Particle.SetForce(forceVec)
+	// Handle input actions
+	// That alters the map state, so we need to apply actions before the next processing round
+	for _, actionBz := range m.inputActions {
+		switch action := actionBz.(type) {
+		case types.CreateParticlesInputAction:
+			m.handleCreateParticlesInput(action)
+		case types.DeleteParticlesInputAction:
+			m.handleRemoveParticlesInput(action)
+		case types.FlipGravityInputAction:
+			m.handleFlipGravityInput()
 		}
 	}
-}
-
-// RemoveParticles removes existing Particle(s) from the Map.
-// If {radius} is GT 1, removes a set of Particles in a circle area.
-// This method skips Particles that can't be removed (borders for ex.).
-func (m *Map) RemoveParticles(x, y, radius int) {
-	m.processingDone()
-	defer m.processingStart()
-
-	for _, pos := range types.PositionsInCircle(x, y, radius, true) {
-		// Skip out-of-range Positions
-		if !m.isPositionValid(pos.X, pos.Y) {
-			continue
-		}
-
-		// Skip empty Tiles
-		tile := m.getTile(pos.X, pos.Y)
-		if !tile.HasParticle() {
-			continue
-		}
-
-		m.removeParticle(tile)
-	}
-}
-
-// FlipGravity flips the global vertical gravity vector.
-func (m *Map) FlipGravity() {
-	closerange.FlipGravity()
+	m.inputActions = m.inputActions[:0]
 }
 
 // isPositionValid checks if Position if within the grid.

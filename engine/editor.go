@@ -137,7 +137,7 @@ func (e *editor) HandleInput() {
 }
 
 // GetNextWorldAction returns the next World input action (if any).
-func (e *editor) GetNextWorldAction() worldAction {
+func (e *editor) GetNextWorldAction() worldTypes.InputAction {
 	return e.cursor.GetPendingWorldAction()
 }
 

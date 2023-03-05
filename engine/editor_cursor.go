@@ -20,12 +20,12 @@ const (
 
 // cursorTool keeps the currently selected Material tool data and pending World input actions.
 type cursorTool struct {
-	material           worldTypes.MaterialI // current Material selected (nil if not)
-	radius             int                  // current circle type radius
-	applyForce         bool                 // if "apply random force" is toggled
-	dotImage           *ebiten.Image        // dot type image
-	circleColor        color.Color          // current tools color
-	pendingWorldAction worldAction          // the next World input action to apply (nil if none)
+	material           worldTypes.MaterialI   // current Material selected (nil if not)
+	radius             int                    // current circle type radius
+	applyForce         bool                   // if "apply random force" is toggled
+	dotImage           *ebiten.Image          // dot type image
+	circleColor        color.Color            // current tools color
+	pendingWorldAction worldTypes.InputAction // the next World input action to apply (nil if none)
 }
 
 // newCursorTool creates a new Cursor tool.
@@ -64,24 +64,24 @@ func (t *cursorTool) Draw(screen *ebiten.Image, drawOpts *ebiten.DrawImageOption
 // OnPress generates a new World input action.
 func (t *cursorTool) OnPress(mouseX, mouseY int) {
 	if t.material != nil {
-		t.pendingWorldAction = createParticlesWorldAction{
-			mouseX:      mouseX,
-			mouseY:      mouseY,
-			mouseRadius: t.radius,
-			material:    t.material,
-			applyForce:  t.applyForce,
+		t.pendingWorldAction = worldTypes.CreateParticlesInputAction{
+			X:          mouseX,
+			Y:          mouseY,
+			Radius:     t.radius,
+			Material:   t.material,
+			ApplyForce: t.applyForce,
 		}
 	} else {
-		t.pendingWorldAction = deleteParticlesWorldAction{
-			mouseX:      mouseX,
-			mouseY:      mouseY,
-			mouseRadius: t.radius,
+		t.pendingWorldAction = worldTypes.DeleteParticlesInputAction{
+			X:      mouseX,
+			Y:      mouseY,
+			Radius: t.radius,
 		}
 	}
 }
 
 // GetPendingWorldAction ...
-func (t *cursorTool) GetPendingWorldAction() worldAction {
+func (t *cursorTool) GetPendingWorldAction() worldTypes.InputAction {
 	if t.pendingWorldAction == nil {
 		return nil
 	}
@@ -155,5 +155,5 @@ func (t *cursorTool) DecRadius() {
 
 // FlipGravity generates a new World input action.
 func (t *cursorTool) FlipGravity() {
-	t.pendingWorldAction = flipGravityWorldAction{}
+	t.pendingWorldAction = worldTypes.FlipGravityInputAction{}
 }

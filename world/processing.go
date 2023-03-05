@@ -7,18 +7,42 @@ import (
 	"github.com/itiky/goPixelWorld/world/types"
 )
 
-func (m *Map) Update() {
-	for i := 0; i < len(m.procActions); i++ {
-		m.procActions[i] = m.procActions[i][:0]
+func (m *Map) processingStart() {
+	m.processingRequestCh <- struct{}{}
+}
+
+func (m *Map) processingDone() {
+	<-m.processingAckCh
+}
+
+func (m *Map) processingWorker() {
+	for {
+		<-m.processingRequestCh
+
+		for i := 0; i < len(m.procActions); i++ {
+			m.procActions[i] = m.procActions[i][:0]
+		}
+
+		m.iterateNonEmptyTiles(func(tile *types.Tile) {
+			m.procTileWorkerWG.Add(1)
+			m.procTileJobCh <- tile
+		})
+		m.procTileWorkerWG.Wait()
+
+		m.processActions()
+
+		pixelIdx := 0
+		m.iterateNonEmptyTiles(func(tile *types.Tile) {
+			m.processingOutput[pixelIdx].Ready = true
+			m.processingOutput[pixelIdx].X = tile.Pos.X
+			m.processingOutput[pixelIdx].Y = tile.Pos.Y
+			m.processingOutput[pixelIdx].Color = tile.Color()
+			pixelIdx++
+		})
+		m.processingOutput[pixelIdx].Ready = false
+
+		m.processingAckCh <- struct{}{}
 	}
-
-	m.iterateNonEmptyTiles(func(tile *types.Tile) {
-		m.procTileWorkerWG.Add(1)
-		m.procTileJobCh <- tile
-	})
-	m.procTileWorkerWG.Wait()
-
-	m.processActions()
 }
 
 func (m *Map) tileWorker(id int) {

@@ -30,6 +30,10 @@ type Map struct {
 	procTileWorkerWG sync.WaitGroup
 	procTileJobCh    chan *types.Tile
 	procActions      [][]types.Action
+	//
+	processingRequestCh chan struct{}
+	processingAckCh     chan struct{}
+	processingOutput    []types.Pixel
 }
 
 func WithWidth(width int) MapOption {
@@ -73,6 +77,9 @@ func NewMap(opts ...MapOption) (*Map, error) {
 		particles: make(map[uint64]*types.Tile),
 		//
 		procTileJobCh: make(chan *types.Tile, tileWorkerJobChSize),
+		//
+		processingRequestCh: make(chan struct{}),
+		processingAckCh:     make(chan struct{}),
 	}
 	for _, opt := range opts {
 		if err := opt(&m); err != nil {
@@ -87,6 +94,9 @@ func NewMap(opts ...MapOption) (*Map, error) {
 		go m.tileWorker(i)
 	}
 
+	go m.processingWorker()
+	m.processingStart()
+
 	return &m, nil
 }
 
@@ -94,13 +104,22 @@ func (m *Map) Size() (int, int) {
 	return m.width, m.height
 }
 
-func (m *Map) IterateTiles(fn func(tile types.TileI)) {
-	m.iterateNonEmptyTiles(func(tile *types.Tile) {
-		fn(tile)
-	})
+func (m *Map) ExportState(fn func(pixel types.Pixel)) {
+	m.processingDone()
+	defer m.processingStart()
+
+	for i := 0; i < len(m.processingOutput); i++ {
+		if !m.processingOutput[i].Ready {
+			break
+		}
+		fn(m.processingOutput[i])
+	}
 }
 
 func (m *Map) CreateParticles(x, y, radius int, materialBz types.MaterialI, randomForce bool) {
+	m.processingDone()
+	defer m.processingStart()
+
 	for _, pos := range types.PositionsInCircle(x, y, radius, true) {
 		if !m.isPositionValid(pos.X, pos.Y) {
 			continue
@@ -133,6 +152,9 @@ func (m *Map) CreateParticles(x, y, radius int, materialBz types.MaterialI, rand
 }
 
 func (m *Map) RemoveParticles(x, y, radius int) {
+	m.processingDone()
+	defer m.processingStart()
+
 	for _, pos := range types.PositionsInCircle(x, y, radius, true) {
 		if !m.isPositionValid(pos.X, pos.Y) {
 			continue
@@ -173,6 +195,7 @@ func (m *Map) initGrid(width, height int) {
 			}
 
 			m.createTile(types.NewPosition(x, y), material)
+			m.processingOutput = append(m.processingOutput, types.Pixel{})
 		}
 	}
 }

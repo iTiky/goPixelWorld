@@ -82,6 +82,8 @@ func NewRunner(worldMap *world.Map, opts ...RunnerOption) (*Runner, error) {
 	ebiten.SetWindowTitle("Go Pixel World")
 	ebiten.SetWindowSize(r.screenWidthInitial, r.screenHeightInitial)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	ebiten.SetFPSMode(ebiten.FPSModeVsyncOffMaximum)
+	ebiten.SetTPS(60)
 
 	return r, nil
 }
@@ -100,8 +102,6 @@ func (r *Runner) Update() error {
 		r.applyWorldAction(r.editor.GetNextWorldAction())
 	}
 
-	r.worldMap.Update()
-
 	return nil
 }
 
@@ -111,7 +111,7 @@ func (r *Runner) Draw(screen *ebiten.Image) {
 		r.monitor.AddFrame()
 	}
 
-	r.drawTiles(screen)
+	drawnPixels := r.drawTiles(screen)
 
 	if r.editor != nil {
 		r.editor.Draw(screen)
@@ -119,9 +119,10 @@ func (r *Runner) Draw(screen *ebiten.Image) {
 
 	mouseX, mouseY := ebiten.CursorPosition()
 	fps := ebiten.ActualFPS()
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("[%d, %d]\n%.1f",
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("[%d, %d]\n%.1f\n%d",
 		r.mouseCoordToWorld(mouseX), r.mouseCoordToWorld(mouseY),
 		fps,
+		drawnPixels,
 	))
 }
 
@@ -146,24 +147,27 @@ func (r *Runner) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHei
 	return outsideWidth, outsideHeight
 }
 
-func (r *Runner) drawTiles(screen *ebiten.Image) {
-	r.worldMap.IterateTiles(func(tile worldTypes.TileI) {
-		tilePos := tile.Position()
-		tileColor := tile.Color()
+func (r *Runner) drawTiles(screen *ebiten.Image) int64 {
+	drawnPixels := int64(0)
 
-		tileImage, found := r.tilesCache[tileColor]
+	r.worldMap.ExportState(func(pixel worldTypes.Pixel) {
+		tileImage, found := r.tilesCache[pixel.Color]
 		if !found {
 			tileImage = ebiten.NewImage(int(r.tileSize), int(r.tileSize))
-			tileImage.Fill(tileColor)
-			r.tilesCache[tileColor] = tileImage
+			tileImage.Fill(pixel.Color)
+			r.tilesCache[pixel.Color] = tileImage
 		}
 
-		tileDrawX, tileDrawY := float64(tilePos.X)*r.tileSize, float64(tilePos.Y)*r.tileSize
+		tileDrawX, tileDrawY := float64(pixel.X)*r.tileSize, float64(pixel.Y)*r.tileSize
 		r.tileDrawOpts.GeoM.Reset()
 		r.tileDrawOpts.GeoM.Translate(tileDrawX, tileDrawY)
 
 		screen.DrawImage(tileImage, r.tileDrawOpts)
+
+		drawnPixels++
 	})
+
+	return drawnPixels
 }
 
 func (r *Runner) applyWorldAction(actionBz worldAction) {

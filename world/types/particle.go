@@ -16,14 +16,18 @@ const (
 	ParticleStateParamSteady = "steady"
 )
 
-// Particle holds a single world object state (a pixel).
-type Particle struct {
-	id       uint64         // unique ID
-	material Material       // Particle's Material
-	forceVec pkg.Vector     // current force Vector
-	health   float64        // current health state
-	state    map[string]int // map of internal state counters
-}
+type (
+	// Particle holds a single world object state (a pixel).
+	Particle struct {
+		id       uint64        // unique ID
+		material Material      // Particle's Material
+		forceVec pkg.Vector    // current force Vector
+		health   float64       // current health state
+		state    ParticleState // map of internal state counters
+	}
+
+	ParticleState map[string]int
+)
 
 // NewParticle creates a new Particle.
 func NewParticle(material Material) *Particle {
@@ -32,7 +36,7 @@ func NewParticle(material Material) *Particle {
 		material: material,
 		forceVec: pkg.NewVector(0, 0),
 		health:   material.InitialHealth(),
-		state:    make(map[string]int),
+		state:    make(ParticleState),
 	}
 }
 

@@ -11,12 +11,13 @@ var _ types.Material = Graviton{}
 // Graviton attracts other Particles in a circle area.
 type Graviton struct {
 	base
-	gravityForceMag float64
+	gravityForceMag float64 // gravity force magnitude
 }
 
 func NewGraviton() Graviton {
 	return Graviton{
 		base: newBase(
+			types.MaterialTypeGraviton,
 			color.RGBA{R: 0x8F, G: 0x00, B: 0xA2, A: 0xFF},
 			withCloseRangeType(types.MaterialCloseRangeTypeInCircleRange),
 			withMass(1000000.0),
@@ -27,12 +28,8 @@ func NewGraviton() Graviton {
 	}
 }
 
-func (m Graviton) Type() types.MaterialType {
-	return types.MaterialTypeGraviton
-}
-
 func (m Graviton) ProcessInternal(env types.TileEnvironment) {
-	env.AddForceInRange(m.gravityForceMag, types.MaterialFlagIsUnmovable)
+	env.AddForceInRange(m.gravityForceMag, []types.MaterialFlag{types.MaterialFlagIsUnmovable})
 }
 
 func (m Graviton) ProcessCollision(env types.CollisionEnvironment) {

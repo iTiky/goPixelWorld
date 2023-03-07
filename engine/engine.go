@@ -86,7 +86,7 @@ func NewRunner(worldMap *world.Map, opts ...RunnerOption) (*Runner, error) {
 	ebiten.SetWindowTitle("Go Pixel World")
 	ebiten.SetWindowSize(r.screenWidthInitial, r.screenHeightInitial)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	ebiten.SetFPSMode(ebiten.FPSModeVsyncOffMaximum)
+	//ebiten.SetFPSMode(ebiten.FPSModeVsyncOffMaximum)
 	ebiten.SetTPS(60)
 
 	return r, nil

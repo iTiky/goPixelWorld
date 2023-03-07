@@ -23,7 +23,41 @@ const (
 	MaterialTypeRock
 	MaterialTypeGraviton
 	MaterialTypeAntiGraviton
+	MaterialTypeBug
 )
+
+func (t MaterialType) String() string {
+	switch t {
+	case MaterialTypeBorder:
+		return "Border"
+	case MaterialTypeWater:
+		return "Water"
+	case MaterialTypeSand:
+		return "Sand"
+	case MaterialTypeWood:
+		return "Wood"
+	case MaterialTypeSmoke:
+		return "Smoke"
+	case MaterialTypeFire:
+		return "Fire"
+	case MaterialTypeSteam:
+		return "Steam"
+	case MaterialTypeGrass:
+		return "Grass"
+	case MaterialTypeMetal:
+		return "Metal"
+	case MaterialTypeRock:
+		return "Rock"
+	case MaterialTypeGraviton:
+		return "Graviton"
+	case MaterialTypeAntiGraviton:
+		return "Anti-Graviton"
+	case MaterialTypeBug:
+		return "Bug"
+	}
+
+	return ""
+}
 
 // MaterialFlag defines Material property.
 type MaterialFlag int
@@ -88,44 +122,87 @@ type TileEnvironment interface {
 	Health() float64
 	// Position returns the Particle current Position.
 	Position() Position
-
-	// StateParam returns the Particle internal state parameter by key.
+	// ForceVec returns the Particle current force Vector.
+	ForceVec() pkg.Vector
+	// StateParam return the internal Particle state parameter value.
 	StateParam(key string) int
-	// UpdateStateParam adds an Action to set the internal Particle state parameter by key.
-	UpdateStateParam(paramKey string, paramValue int) bool
 
-	// DampSelfHealth adds an Action to alter the Particle's health (increase / decrease).
-	DampSelfHealth(step float64) bool
-	// DampEnvHealthByFlag adds Actions to alter the Particle's neighbours' health.
-	// {flagFilters} filters source neighbours by MaterialFlag (AND, including).
-	DampEnvHealthByFlag(step float64, flagFilters ...MaterialFlag) int
-	// DampEnvHealthByType adds Actions to alter the Particle's neighbours' health.
-	// {typeFilters} filters source neighbours by MaterialType (AND, including).
-	DampEnvHealthByType(step float64, typeFilters ...MaterialType) int
-	// RemoveSelfHealthDamps removes any previously added environment Actions that reduces the Particle health.
-	RemoveSelfHealthDamps() bool
+	// AddGravity adds the vertical gravity force Vector to the Particle.
+	AddGravity() (isApplied bool)
+	// AddReverseGravity adds the reversed vertical gravity force Vector to the Particle.
+	AddReverseGravity() (isApplied bool)
 
-	// AddGravity adds an Action which add the vertical gravity to the Particle's force Vector.
-	AddGravity() bool
-	// AddReverseGravity adds an Action which add the inverted vertical gravity to the Particle's force Vector.
-	AddReverseGravity() bool
-	// AddForceInRange adds Actions that add the provided magnitude to neighbours' force Vectors.
-	// {notFlagFilters} filters source neighbours by MaterialType (AND, NOT including).
-	AddForceInRange(mag float64, notFlagFilters ...MaterialFlag) bool
+	// ReplaceSelf replaces the Particle with a new one.
+	ReplaceSelf(newMaterial Material) (flagIn bool)
+	// UpdateStateParam updates the internal Particle state param.
+	UpdateStateParam(paramKey string, paramValue int) (flagIn bool)
+	// AddSelfForce adds a new force to the Particle.
+	AddSelfForce(vec pkg.Vector) (flagIn bool)
+	// SetSelfForce sets a new force to the Particle.
+	SetSelfForce(vec pkg.Vector) (flagIn bool)
+	// DampSelfHealth alters the Particle health.
+	DampSelfHealth(step float64) (flagIn bool)
+	// RemoveSelfHealthDamps removes previously added Particle health reduction Actions.
+	RemoveSelfHealthDamps() (flagIn bool)
 
-	// MoveGas adds an Action that implements gas-like Material movement.
-	MoveGas() bool
+	// AddNewNeighbourTile adds a new neighbour Particle.
+	// Candidate is selected randomly from empty neighbours matching the filter.
+	// {dirFilters} filter includes candidates IN directions.
+	AddNewNeighbourTile(newMaterial Material, dirFilters []pkg.Direction) (isApplied bool)
+	// ReplaceNeighbourTile replaces a neighbour Tile with a new Particle.
+	// Candidate is selected randomly from non-empty neighbours matching the filter.
+	// {flagFilters} filter includes candidates WITH flags.
+	ReplaceNeighbourTile(newMaterial Material, flagFilters []MaterialFlag) (isApplied bool)
+	// AddNewNeighbourTileGrassStyle adds a new grass-like neighbour.
+	// Candidate select criteria:
+	//   - three close empty Tiles (for ex.: Top-Left, Top and Top-Right);
+	//   - random;
+	AddNewNeighbourTileGrassStyle(newMaterial Material) (isApplied bool)
+	// DampNeighboursHealthByFlag alters neighbour(s) health.
+	// Non-empty candidates are selected by AND filters.
+	// {typeFilters} filter includes candidates MATCHING types.
+	// {flagFilters} filter includes candidates WITH flags.
+	DampNeighboursHealthByFlag(step float64, typeFilters []MaterialType, flagFilters []MaterialFlag) (neighboursAffectedCnt int)
+	// MoveTileWithNeighboursGasStyle moves the Particle up for gas-like Materials.
+	// Move to a randomly selected empty Tile in the upper direction sector (Top-Left + Top + Top-Right).
+	MoveTileWithNeighboursGasStyle() (isApplied bool)
+	// SearchNeighbours performs a full neighbours search.
+	// {isEmpty} if not nil, defines empty/non-empty Tile criteria.
+	// {dirsFilter, dirsIn} filter includes particles IN direction relative to the source ({dirsIn} = false, inverts the filter making it NOT).
+	// {typeFilters, typeIn} filter includes candidates MATCHING types ({typeIn} = false, inverts the filter making it NOT).
+	// {flagFilters, flagIn} filter includes candidates WITH flags ({flagIn} = false, inverts the filter making it NOT).
+	SearchNeighbours(
+		isEmpty *bool,
+		dirsFilter []pkg.Direction, dirsIn bool,
+		typeFilters []MaterialType, typeIn bool,
+		flagFilters []MaterialFlag, flagIn bool,
+	) (tiles []*Tile, tileDirs []pkg.Direction)
 
-	// ReplaceTile adds Actions that replaces a particular Tile's Particle with a new one.
-	// {flagFilters} filters source neighbours by MaterialFlag (AND, including).
-	ReplaceTile(newMaterial Material, flagFilters ...MaterialFlag) bool
-	// ReplaceSelf adds an Action that replaces the Particle with a new one.
-	ReplaceSelf(newMaterial Material) bool
-	// AddTile adds Actions that creates a new Particle(s).
-	// {dirFilters} filters source neighbours by their relative position.
-	AddTile(newMaterial Material, dirFilters ...pkg.Direction) bool
-	// AddTileGrassStyle adds an Action that creates a new Particle for grass-like Material.
-	AddTileGrassStyle(newMaterial Material) bool
+	// AddNewTileInRange adds a new Particle in a circle range.
+	// Candidate is selected randomly from empty tiles.
+	AddNewTileInRange(newMaterial Material) bool
+	// AddForceInRange adds a force Vector in a circle range.
+	// If {mag} is LT 0, force is reflected.
+	// Non-empty candidates are selected by NOT filter.
+	// {notFlagFilters} filters OUT particles WITH flags.
+	AddForceInRange(mag float64, notFlagFilters []MaterialFlag) (isApplied bool)
+	// DampEnvHealthByTypeInRange alters tiles in a circle range health.
+	// Non-empty candidates are selected by AND filters and distance limit.
+	// {distance} limits a candidate distance to the source.
+	// {typeFilters} filter includes candidates MATCHING types.
+	// {flagFilters} filter includes candidates WITH flags.
+	DampEnvHealthByTypeInRange(distance, step float64, typeFilters []MaterialType, flagFilters []MaterialFlag) (tilesAffectedCnt int)
+	// SearchTilesInRange performs a full in a circle area search.
+	// {isEmpty} if not nil, defines empty/non-empty Tile criteria.
+	// {dirsFilter, dirsIn} filter includes particles IN direction relative to the source ({dirsIn} = false, inverts the filter making it NOT).
+	// {typeFilters, typeIn} filter includes candidates MATCHING types ({typeIn} = false, inverts the filter making it NOT).
+	// {flagFilters, flagIn} filter includes candidates WITH flags ({flagIn} = false, inverts the filter making it NOT).
+	SearchTilesInRange(
+		isEmpty *bool, maxDistance *float64,
+		dirsFilter []pkg.Direction, dirsIn bool,
+		typeFilters []MaterialType, typeIn bool,
+		flagFilters []MaterialFlag, flagIn bool,
+	) (tiles []*Tile, sourceToTileDirs []pkg.Direction, sourceToTileDistances []float64)
 }
 
 // CollisionEnvironment defines a contract each Material must implement in order to process Particles collision.

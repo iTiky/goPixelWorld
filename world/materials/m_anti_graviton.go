@@ -11,12 +11,13 @@ var _ types.Material = AntiGraviton{}
 // AntiGraviton pushes away other Particles in a circle area.
 type AntiGraviton struct {
 	base
-	antiGravityForceMag float64
+	antiGravityForceMag float64 // anti-gravity force magnitude
 }
 
 func NewAntiGraviton() AntiGraviton {
 	return AntiGraviton{
 		base: newBase(
+			types.MaterialTypeAntiGraviton,
 			color.RGBA{R: 0x00, G: 0xA7, B: 0x9F, A: 0xFF},
 			withCloseRangeType(types.MaterialCloseRangeTypeInCircleRange),
 			withMass(1000000.0),
@@ -27,12 +28,8 @@ func NewAntiGraviton() AntiGraviton {
 	}
 }
 
-func (m AntiGraviton) Type() types.MaterialType {
-	return types.MaterialTypeAntiGraviton
-}
-
 func (m AntiGraviton) ProcessInternal(env types.TileEnvironment) {
-	env.AddForceInRange(m.antiGravityForceMag, types.MaterialFlagIsUnmovable)
+	env.AddForceInRange(m.antiGravityForceMag, []types.MaterialFlag{types.MaterialFlagIsUnmovable})
 }
 
 func (m AntiGraviton) ProcessCollision(env types.CollisionEnvironment) {

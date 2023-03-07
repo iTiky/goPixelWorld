@@ -16,6 +16,7 @@ type Smoke struct {
 func NewSmoke() Smoke {
 	return Smoke{
 		base: newBase(
+			types.MaterialTypeSmoke,
 			color.RGBA{R: 0xCD, G: 0xCD, B: 0xCD, A: 0xFF},
 			withFlags(types.MaterialFlagIsGas),
 			withCloseRangeType(types.MaterialCloseRangeTypeSelfOnly),
@@ -23,10 +24,6 @@ func NewSmoke() Smoke {
 			withSelfHealthReduction(100.0, 0.5),
 		),
 	}
-}
-
-func (m Smoke) Type() types.MaterialType {
-	return types.MaterialTypeSmoke
 }
 
 func (m Smoke) ColorAdjusted(health float64) color.Color {

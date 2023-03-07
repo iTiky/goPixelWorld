@@ -1,18 +1,14 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"image"
 	"log"
 	"net/http"
-	"os"
-	"time"
-
 	_ "net/http/pprof"
+	"os"
 
 	"github.com/itiky/goPixelWorld/engine"
-	"github.com/itiky/goPixelWorld/monitor"
 	"github.com/itiky/goPixelWorld/world"
 	"github.com/itiky/goPixelWorld/world/materials"
 	worldTypes "github.com/itiky/goPixelWorld/world/types"
@@ -23,10 +19,10 @@ func main() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
-	monitorKeeper, err := monitor.NewKeeper(10 * time.Second)
-	if err != nil {
-		log.Fatalf("monitor.NewKeeper: %v", err)
-	}
+	//monitorKeeper, err := monitor.NewKeeper(10 * time.Second)
+	//if err != nil {
+	//	log.Fatalf("monitor.NewKeeper: %v", err)
+	//}
 
 	worldMap, err := world.NewMap(
 		world.WithWidth(250),
@@ -48,22 +44,23 @@ func main() {
 	}
 
 	materialsAll := []worldTypes.MaterialI{
-		materials.NewSand(),
-		materials.NewWater(),
-		materials.NewWood(),
-		materials.NewFire(),
-		materials.NewGrass(),
+		materials.NewSand(),         // 1
+		materials.NewWater(),        // 2
+		materials.NewWood(),         // 3
+		materials.NewGrass(),        // 4
+		materials.NewFire(),         // 5
+		materials.NewRock(),         // 6
+		materials.NewMetal(),        // 7
+		materials.NewBug(),          // 8
+		materials.NewGraviton(),     // 9
+		materials.NewAntiGraviton(), // 0
 		materials.NewSmoke(),
 		materials.NewSteam(),
-		materials.NewMetal(),
-		materials.NewRock(),
-		materials.NewGraviton(),
-		materials.NewAntiGraviton(),
 	}
 
 	runner, err := engine.NewRunner(
 		worldMap,
-		engine.WithScreenSize(1500, 1100),
+		engine.WithScreenSize(1200, 1100),
 		engine.WithEditorUI(materialsAll...),
 		//engine.WithMonitor(monitorKeeper),
 	)
@@ -71,10 +68,9 @@ func main() {
 		log.Fatalf("creating engine.Runner: %v", err)
 	}
 
-	ctx, ctxCancel := context.WithCancel(context.Background())
-	defer ctxCancel()
-
-	monitorKeeper.Start(ctx)
+	//ctx, ctxCancel := context.WithCancel(context.Background())
+	//defer ctxCancel()
+	//monitorKeeper.Start(ctx)
 
 	if err := runner.Run(); err != nil {
 		log.Fatalf("running engine.Runner: %v", err)

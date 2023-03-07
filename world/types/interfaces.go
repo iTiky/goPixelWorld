@@ -6,12 +6,13 @@ import (
 
 // TileI defines an interface to export Tile state.
 type TileI interface {
-	MaterialI
 	X() int
 	Y() int
+	Color() color.Color
 }
 
 // MaterialI defines an interface to export Material state.
 type MaterialI interface {
+	Name() string
 	Color() color.Color
 }

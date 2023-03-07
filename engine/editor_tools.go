@@ -30,6 +30,8 @@ const (
 var (
 	// The last unique tool ID
 	lastToolID = -1
+	// Material tools defaults
+	materialToolFontColor = color.RGBA{R: 0x00, G: 0x00, B: 0x00, A: 0xFF}
 	// Toggle tools defaults
 	toggleToolOffColor  = color.RGBA{R: 0x2B, G: 0x2B, B: 0x2B, A: 0xFF} // OFF color
 	toggleToolOnColor   = color.RGBA{R: 0x00, G: 0x3C, B: 0x18, A: 0xFF} // ON color
@@ -54,6 +56,7 @@ type toolBase struct {
 	textX, textY int           // top-left Tile's font coordinates
 	image        *ebiten.Image // tool image
 	text         string        // tool text
+	textColor    color.Color   // tool text default color
 	toggled      bool          // is toggled flag
 }
 
@@ -78,7 +81,11 @@ func (t *toolBase) Draw(screen *ebiten.Image, drawOpts *ebiten.DrawImageOptions)
 	screen.DrawImage(t.image, drawOpts)
 
 	if t.text != "" {
-		text.Draw(screen, t.text, toggleToolFont, t.textX, t.textY, toggleToolFontColor)
+		if len(t.text) > 8 {
+			t.text = t.text[:8]
+		}
+
+		text.Draw(screen, t.text, toggleToolFont, t.textX, t.textY, t.textColor)
 	}
 }
 
@@ -124,8 +131,10 @@ type materialTile struct {
 func newMaterialTile(material worldTypes.MaterialI, callback func(m worldTypes.MaterialI)) *materialTile {
 	t := materialTile{
 		toolBase: toolBase{
-			id:    nextToolID(),
-			image: ebiten.NewImage(toolTileWidth, toolTileHeight),
+			id:        nextToolID(),
+			image:     ebiten.NewImage(toolTileWidth, toolTileHeight),
+			text:      material.Name(),
+			textColor: materialToolFontColor,
 		},
 		material: material,
 		callback: callback,
@@ -154,10 +163,11 @@ type removeToggleTile struct {
 func newRemoveToggleTile(callback func(m worldTypes.MaterialI)) *removeToggleTile {
 	t := removeToggleTile{
 		toolBase: toolBase{
-			id:      nextToolID(),
-			image:   ebiten.NewImage(toolTileWidth, toolTileHeight),
-			text:    "Remove",
-			toggled: true,
+			id:        nextToolID(),
+			image:     ebiten.NewImage(toolTileWidth, toolTileHeight),
+			text:      "Remove",
+			textColor: toggleToolFontColor,
+			toggled:   true,
 		},
 		callback: callback,
 	}
@@ -197,10 +207,11 @@ type genericToggleTile struct {
 func newGenericToggleTile(text string, callbackOn, callbackOff func()) *genericToggleTile {
 	t := genericToggleTile{
 		toolBase: toolBase{
-			id:      nextToolID(),
-			image:   ebiten.NewImage(toolTileWidth, toolTileHeight),
-			text:    text,
-			toggled: true,
+			id:        nextToolID(),
+			image:     ebiten.NewImage(toolTileWidth, toolTileHeight),
+			text:      text,
+			textColor: toggleToolFontColor,
+			toggled:   true,
 		},
 		callbackOn:  callbackOn,
 		callbackOff: callbackOff,

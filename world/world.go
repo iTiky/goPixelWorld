@@ -42,6 +42,9 @@ type Map struct {
 	/* Input state */
 	inputActions []types.InputAction
 
+	/* Nature state */
+	natureCloudsTimeout int
+
 	/* External services */
 	monitor *monitor.Keeper
 }
@@ -100,6 +103,8 @@ func NewMap(opts ...MapOption) (*Map, error) {
 
 	// Processing init
 	m.initProcessing()
+	// Nature init
+	m.initNatureEvents()
 
 	return &m, nil
 }
@@ -123,6 +128,9 @@ func (m *Map) ExportState(fn func(pixel types.TileI)) {
 		}
 		fn(m.procOutput[i])
 	}
+
+	// Nature events
+	m.inputActions = append(m.inputActions, m.handleNatureEvents()...)
 
 	// Handle input actions
 	// That alters the map state, so we need to apply actions before the next processing round

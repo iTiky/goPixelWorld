@@ -16,16 +16,13 @@ type Border struct {
 func NewBorder() Border {
 	return Border{
 		base: newBase(
+			types.MaterialTypeBorder,
 			color.RGBA{R: 0x1A, G: 0x1A, B: 0x1A, A: 0xFF},
 			withFlags(types.MaterialFlagIsUnremovable, types.MaterialFlagIsUnmovable),
 			withCloseRangeType(types.MaterialCloseRangeTypeNone),
 			withSourceDamping(0.2, 0.0),
 		),
 	}
-}
-
-func (m Border) Type() types.MaterialType {
-	return types.MaterialTypeBorder
 }
 
 func (m Border) ProcessCollision(env types.CollisionEnvironment) {

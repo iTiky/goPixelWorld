@@ -6,7 +6,8 @@ package pkg
 type Direction int
 
 const (
-	DirectionTop Direction = iota
+	DirectionNone Direction = iota
+	DirectionTop
 	DirectionTopRight
 	DirectionRight
 	DirectionBottomRight
@@ -126,6 +127,11 @@ func (d Direction) Next() Direction {
 // Rotate180 returns the inverted Direction.
 func (d Direction) Rotate180() Direction {
 	return (d + 4) % 8
+}
+
+// Int ...
+func (d Direction) Int() int {
+	return int(d)
 }
 
 func (d Direction) String() string {

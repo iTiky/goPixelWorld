@@ -13,12 +13,13 @@ var _ types.Material = Fire{}
 // When Fire health is low it replaces itself with the Smoke.
 type Fire struct {
 	base
-	fireDamageDampStep float64
+	fireDamageDampStep float64 // flammable surrounding damage
 }
 
 func NewFire() Fire {
 	return Fire{
 		base: newBase(
+			types.MaterialTypeFire,
 			color.RGBA{R: 0xFF, G: 0xAD, B: 0x8B, A: 0xFF},
 			withFlags(
 				types.MaterialFlagIsGas,
@@ -31,10 +32,6 @@ func NewFire() Fire {
 		),
 		fireDamageDampStep: 2.0,
 	}
-}
-
-func (m Fire) Type() types.MaterialType {
-	return types.MaterialTypeFire
 }
 
 func (m Fire) ColorAdjusted(health float64) color.Color {
@@ -53,15 +50,15 @@ func (m Fire) ColorAdjusted(health float64) color.Color {
 
 func (m Fire) ProcessInternal(env types.TileEnvironment) {
 	env.DampSelfHealth(m.selfHealthDampStep)
-	env.DampEnvHealthByFlag(m.fireDamageDampStep, types.MaterialFlagIsFlammable)
+	env.DampNeighboursHealthByFlag(m.fireDamageDampStep, nil, []types.MaterialFlag{types.MaterialFlagIsFlammable})
 
 	health := env.Health()
 	if health < 30.0 && pkg.RollDice(3) {
-		env.ReplaceTile(AllMaterialsSet[types.MaterialTypeFire], types.MaterialFlagIsFlammable)
+		env.ReplaceNeighbourTile(AllMaterialsSet[types.MaterialTypeFire], []types.MaterialFlag{types.MaterialFlagIsFlammable})
 	}
 
 	if pkg.RollDice(3) {
-		env.AddTile(AllMaterialsSet[types.MaterialTypeSmoke])
+		env.AddNewNeighbourTile(AllMaterialsSet[types.MaterialTypeSmoke], nil)
 	}
 }
 

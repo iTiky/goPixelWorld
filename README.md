@@ -60,6 +60,11 @@ Has a limited range of attraction.
 Light blue particle which doesn't move and pushes away other particles.
 Has a limited range of action.
 
+### Bug
+
+White particle that moves around in search of a grass to eat.
+Splits if it is "full" or dies otherwise.
+
 ## Controls
 
 ### Mouse
@@ -74,7 +79,7 @@ Select a tool / toggle options on the right side of the screen.
 
 ### Keyboard
 
-- `[1 - 9]` - select a *material* to draw with;
+- `[1 - 9 - 0]` - select a *material* to draw with;
 - `s` - switch between drawing with a *single dot* and a *circle*;
 - `d` - select the *removal tool*;
 - `q` - reduce the *circle* tool radius;

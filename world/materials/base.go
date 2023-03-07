@@ -20,12 +20,14 @@ var AllMaterialsSet = map[types.MaterialType]types.Material{
 	types.MaterialTypeRock:         NewRock(),
 	types.MaterialTypeGraviton:     NewGraviton(),
 	types.MaterialTypeAntiGraviton: NewAntiGraviton(),
+	types.MaterialTypeBug:          NewBug(),
 }
 
 type (
 	// base defines common fields and method for all Materials.
 	base struct {
 		// Base params
+		mType     types.MaterialType
 		flags     map[types.MaterialFlag]bool // Material properties set
 		baseColor color.Color                 // the main Particle's color
 		mass      float64                     // Particle's mass
@@ -90,8 +92,9 @@ func withSelfHealthReduction(initial, dampStep float64) baseOpt {
 }
 
 // newBase creates a new base Material with defaults.
-func newBase(baseColor color.Color, opts ...baseOpt) base {
+func newBase(mType types.MaterialType, baseColor color.Color, opts ...baseOpt) base {
 	m := base{
+		mType:             mType,
 		flags:             make(map[types.MaterialFlag]bool),
 		baseColor:         baseColor,
 		mass:              100.0,
@@ -106,6 +109,14 @@ func newBase(baseColor color.Color, opts ...baseOpt) base {
 }
 
 /* The following methods partially implements the types.Material interface */
+
+func (m base) Type() types.MaterialType {
+	return m.mType
+}
+
+func (m base) Name() string {
+	return m.mType.String()
+}
 
 func (m base) Color() color.Color {
 	return m.baseColor

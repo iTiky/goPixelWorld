@@ -123,6 +123,11 @@ func (p Position) CreatePathTo(toPos Position, xMax, yMax int) (path []Position)
 	return
 }
 
+// DistanceTo returns a distance between two points.
+func (p Position) DistanceTo(p2 Position) float64 {
+	return math.Sqrt(math.Pow(float64(p2.X)-float64(p.X), 2.0) + math.Pow(float64(p2.Y)-float64(p.Y), 2.0))
+}
+
 func (p Position) String() string {
 	return fmt.Sprintf("Position(%d, %d)", p.X, p.Y)
 }

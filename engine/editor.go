@@ -91,10 +91,17 @@ func WithEditorUI(materials ...worldTypes.MaterialI) RunnerOption {
 				removeToggleTool.ToggleOff()
 			})
 
-			e.keyboardInput.SetCallback(ebiten.KeyDigit1+ebiten.Key(idx), func() {
-				materialTool.OnClick(-1, -1)
-				removeToggleTool.ToggleOff()
-			})
+			if idx < 10 {
+				keyCode := ebiten.KeyDigit1 + ebiten.Key(idx)
+				if idx == 9 {
+					keyCode = ebiten.KeyDigit0
+				}
+
+				e.keyboardInput.SetCallback(keyCode, func() {
+					materialTool.OnClick(-1, -1)
+					removeToggleTool.ToggleOff()
+				})
+			}
 			e.toolTiles = append(e.toolTiles, materialTool)
 		}
 		e.toolTiles = append(e.toolTiles,

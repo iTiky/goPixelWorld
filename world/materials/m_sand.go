@@ -16,6 +16,7 @@ type Sand struct {
 func NewSand() Sand {
 	return Sand{
 		base: newBase(
+			types.MaterialTypeSand,
 			color.RGBA{R: 0xFF, G: 0xD5, B: 0x00, A: 0xFF},
 			withFlags(types.MaterialFlagIsSand),
 			withCloseRangeType(types.MaterialCloseRangeTypeSelfOnly),
@@ -23,10 +24,6 @@ func NewSand() Sand {
 			withSourceDamping(0.9, 0.0),
 		),
 	}
-}
-
-func (m Sand) Type() types.MaterialType {
-	return types.MaterialTypeSand
 }
 
 func (m Sand) ProcessInternal(env types.TileEnvironment) {

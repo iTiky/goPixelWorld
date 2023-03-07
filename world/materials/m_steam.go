@@ -18,6 +18,7 @@ type Steam struct {
 func NewSteam() Steam {
 	return Steam{
 		base: newBase(
+			types.MaterialTypeSteam,
 			color.RGBA{R: 0x05, G: 0x00, B: 0xA7, A: 0xFF},
 			withFlags(types.MaterialFlagIsGas),
 			withCloseRangeType(types.MaterialCloseRangeTypeSelfOnly),
@@ -25,10 +26,6 @@ func NewSteam() Steam {
 			withSelfHealthReduction(100.0, 0.25),
 		),
 	}
-}
-
-func (m Steam) Type() types.MaterialType {
-	return types.MaterialTypeSteam
 }
 
 func (m Steam) ColorAdjusted(health float64) color.Color {

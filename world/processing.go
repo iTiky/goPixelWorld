@@ -6,7 +6,7 @@ import (
 
 const (
 	// tileWorkersNum defines the number of Tile processing workers.
-	tileWorkersNum = 32
+	tileWorkersNum = 8
 	// procTileJobChSize defines the procTileJobCh buffer size.
 	procTileJobChSize = 50000
 )

@@ -67,6 +67,11 @@ func (e *Environment) Position() types.Position {
 	return e.source.Pos
 }
 
+// ForceVec returns the source Particle force Vector.
+func (e *Environment) ForceVec() pkg.Vector {
+	return e.source.Particle.ForceVector()
+}
+
 // StateParam returns the source Particle internal state param.
 func (e *Environment) StateParam(key string) int {
 	return e.source.Particle.GetStateParam(key)
@@ -77,62 +82,76 @@ func (e *Environment) Actions() []types.Action {
 	return e.actions
 }
 
-// getEmptyNeighbour returns an empty neighbour Tile by direction.
-func (e *Environment) getEmptyNeighbour(dir pkg.Direction) *types.Tile {
-	neighbourTile := e.neighbours[dir]
-	if neighbourTile == nil {
-		return nil
-	}
-
-	if neighbourTile.HasParticle() {
-		return nil
-	}
-
-	return neighbourTile
-}
-
-// getNonEmptyNeighbour returns a non-empty neighbour Tile by direction.
-func (e *Environment) getNonEmptyNeighbour(dir pkg.Direction) *types.Tile {
-	neighbourTile := e.neighbours[dir]
-	if neighbourTile == nil {
-		return nil
-	}
-
-	if !neighbourTile.HasParticle() {
-		return nil
-	}
-
-	return neighbourTile
-}
-
-// getNonEmptyNeighbourWithAndFlags returns a non-empty neighbour Tile by direction matching MaterialFlag.
-func (e *Environment) getNonEmptyNeighbourWithAndFlags(dir pkg.Direction, flagFilters ...types.MaterialFlag) *types.Tile {
-	neighbourTile := e.getNonEmptyNeighbour(dir)
-	if neighbourTile == nil {
-		return nil
-	}
-
-	for _, flagFiler := range flagFilters {
-		if !neighbourTile.Particle.Material().IsFlagged(flagFiler) {
-			return nil
+// getNeighbours returns neighbour tiles matching criteria with corresponding direction (relative to the source).
+func (e *Environment) getNeighbours(isEmpty *bool, dirs []pkg.Direction, dirsIn bool, mTypes []types.MaterialType, mTypesIn bool, mFlags []types.MaterialFlag, mFlagsIn bool) ([]*types.Tile, []pkg.Direction) {
+	var tiles []*types.Tile
+	var tilesDir []pkg.Direction
+	for neighbourDir, neighbourTile := range e.neighbours {
+		if neighbourTile == nil {
+			continue
 		}
+		if isEmpty != nil {
+			if neighbourTile.HasParticle() == *isEmpty {
+				continue
+			}
+		}
+		if len(dirs) > 0 {
+			if pkg.SliceHasValue(dirs, neighbourDir) != dirsIn {
+				continue
+			}
+		}
+		if len(mTypes) > 0 {
+			if pkg.SliceHasValue(mTypes, neighbourTile.Particle.Material().Type()) != mTypesIn {
+				continue
+			}
+		}
+		if len(mFlags) > 0 {
+			if neighbourTile.Particle.Material().IsFlagged(mFlags...) != mFlagsIn {
+				continue
+			}
+		}
+
+		tiles = append(tiles, neighbourTile)
+		tilesDir = append(tilesDir, neighbourDir)
 	}
 
-	return neighbourTile
+	return tiles, tilesDir
 }
 
-// getNonEmptyNeighbourWithAndTypes returns a non-empty neighbour Tile by direction matching MaterialType.
-func (e *Environment) getNonEmptyNeighbourWithAndTypes(dir pkg.Direction, typeFilters ...types.MaterialType) *types.Tile {
-	neighbourTile := e.getNonEmptyNeighbour(dir)
-	if neighbourTile == nil {
-		return nil
-	}
-
-	for _, typeFilter := range typeFilters {
-		if neighbourTile.Particle.Material().Type() != typeFilter {
-			return nil
+// getTilesInRange returns in a circle range tiles matching criteria with corresponding distances (relative to the source).
+func (e *Environment) getTilesInRange(isEmpty *bool, distanceMax *float64, mTypes []types.MaterialType, mTypesIn bool, mFlags []types.MaterialFlag, mFlagsIn bool) ([]*types.Tile, []float64) {
+	var tiles []*types.Tile
+	var tilesDistance []float64
+	for _, rangeTile := range e.tilesInRange {
+		if rangeTile == nil {
+			continue
 		}
+		if isEmpty != nil {
+			if rangeTile.HasParticle() == *isEmpty {
+				continue
+			}
+		}
+		if len(mTypes) > 0 {
+			if pkg.SliceHasValue(mTypes, rangeTile.Particle.Material().Type()) != mTypesIn {
+				continue
+			}
+		}
+		if len(mFlags) > 0 {
+			if rangeTile.Particle.Material().IsFlagged(mFlags...) != mFlagsIn {
+				continue
+			}
+		}
+
+		rangeTileDistance := e.source.Pos.DistanceTo(rangeTile.Pos)
+		if distanceMax != nil {
+			if rangeTileDistance > *distanceMax {
+				continue
+			}
+		}
+
+		tiles = append(tiles, rangeTile)
+		tilesDistance = append(tilesDistance, rangeTileDistance)
 	}
 
-	return neighbourTile
+	return tiles, tilesDistance
 }

@@ -137,10 +137,6 @@ func (m *Map) buildTileEnv(sourceTile *types.Tile, tileEnv *closerange.Environme
 			}
 
 			neighborTile := m.getTile(pos.X, pos.Y)
-			if !neighborTile.HasParticle() {
-				continue
-			}
-
 			tileEnv.AddTileInRange(neighborTile)
 		}
 	}

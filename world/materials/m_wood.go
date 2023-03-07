@@ -16,6 +16,7 @@ type Wood struct {
 func NewWood() Wood {
 	return Wood{
 		base: newBase(
+			types.MaterialTypeWood,
 			color.RGBA{R: 0x7A, G: 0x33, B: 0x00, A: 0xFF},
 			withFlags(types.MaterialFlagIsUnmovable, types.MaterialFlagIsFlammable),
 			withCloseRangeType(types.MaterialCloseRangeTypeNone),
@@ -24,10 +25,6 @@ func NewWood() Wood {
 			withSourceDamping(0.5, 0.0),
 		),
 	}
-}
-
-func (m Wood) Type() types.MaterialType {
-	return types.MaterialTypeWood
 }
 
 func (m Wood) ProcessCollision(env types.CollisionEnvironment) {

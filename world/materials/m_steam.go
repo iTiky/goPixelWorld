@@ -43,6 +43,8 @@ func (m Steam) ColorAdjusted(health float64) color.Color {
 }
 
 func (m Steam) ProcessInternal(env types.TileEnvironment) {
+	m.commonProcessInternal(env)
+
 	env.AddReverseGravity()
 	env.DampSelfHealth(m.selfHealthDampStep)
 

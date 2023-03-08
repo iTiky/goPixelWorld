@@ -53,6 +53,8 @@ func (m Grass) ColorAdjusted(health float64) color.Color {
 }
 
 func (m Grass) ProcessInternal(env types.TileEnvironment) {
+	m.commonProcessInternal(env)
+
 	grassNeighbourTiles, _ := env.SearchNeighbours(
 		pkg.ValuePtr(false),
 		nil, false,

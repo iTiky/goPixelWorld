@@ -36,6 +36,8 @@ func (m Water) ColorAdjusted(health float64) color.Color {
 }
 
 func (m Water) ProcessInternal(env types.TileEnvironment) {
+	m.commonProcessInternal(env)
+
 	// Reduce health and replace self with steam (is there is some air above)
 	env.DampSelfHealth(m.selfHealthDampStep)
 	if env.Health() <= 0.0 {

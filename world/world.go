@@ -43,7 +43,9 @@ type Map struct {
 	inputActions []types.InputAction
 
 	/* Nature state */
-	natureCloudsTimeout int
+	natureEnabled           bool
+	natureCloudsTimeout     int
+	natureWindChangeTimeout int
 
 	/* External services */
 	monitor *monitor.Keeper
@@ -69,6 +71,14 @@ func WithHeight(height int) MapOption {
 		}
 
 		m.height = height
+		return nil
+	}
+}
+
+// WithNatureEffects options enables nature effects like clouds, wind, etc.
+func WithNatureEffects() MapOption {
+	return func(m *Map) error {
+		m.natureEnabled = true
 		return nil
 	}
 }
@@ -130,7 +140,9 @@ func (m *Map) ExportState(fn func(pixel types.TileI)) {
 	}
 
 	// Nature events
-	m.inputActions = append(m.inputActions, m.handleNatureEvents()...)
+	if m.natureEnabled {
+		m.inputActions = append(m.inputActions, m.handleNatureEvents()...)
+	}
 
 	// Handle input actions
 	// That alters the map state, so we need to apply actions before the next processing round

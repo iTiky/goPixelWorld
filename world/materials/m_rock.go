@@ -27,6 +27,8 @@ func NewRock() Rock {
 }
 
 func (m Rock) ProcessInternal(env types.TileEnvironment) {
+	m.commonProcessInternal(env)
+
 	env.AddGravity()
 }
 

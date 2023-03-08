@@ -41,6 +41,8 @@ func (m Smoke) ColorAdjusted(health float64) color.Color {
 }
 
 func (m Smoke) ProcessInternal(env types.TileEnvironment) {
+	m.commonProcessInternal(env)
+
 	env.AddReverseGravity()
 	env.DampSelfHealth(m.selfHealthDampStep)
 }

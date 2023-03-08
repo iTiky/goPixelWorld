@@ -108,6 +108,10 @@ func newBase(mType types.MaterialType, baseColor color.Color, opts ...baseOpt) b
 	return m
 }
 
+func (m base) commonProcessInternal(env types.TileEnvironment) {
+	env.AddWind()
+}
+
 /* The following methods partially implements the types.Material interface */
 
 func (m base) Type() types.MaterialType {
@@ -161,4 +165,6 @@ func (m base) CloseRangeType() types.MaterialCloseRangeType {
 	return m.closeRangeType
 }
 
-func (m base) ProcessInternal(env types.TileEnvironment) {}
+func (m base) ProcessInternal(env types.TileEnvironment) {
+	m.commonProcessInternal(env)
+}

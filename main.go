@@ -27,6 +27,7 @@ func main() {
 	worldMap, err := world.NewMap(
 		world.WithWidth(250),
 		world.WithHeight(250),
+		world.WithNatureEffects(),
 		//world.WithMonitor(monitorKeeper),
 	)
 	if err != nil {

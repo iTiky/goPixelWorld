@@ -49,6 +49,8 @@ func (m Fire) ColorAdjusted(health float64) color.Color {
 }
 
 func (m Fire) ProcessInternal(env types.TileEnvironment) {
+	m.commonProcessInternal(env)
+
 	env.DampSelfHealth(m.selfHealthDampStep)
 	env.DampNeighboursHealthByFlag(m.fireDamageDampStep, nil, []types.MaterialFlag{types.MaterialFlagIsFlammable})
 

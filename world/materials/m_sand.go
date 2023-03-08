@@ -27,6 +27,8 @@ func NewSand() Sand {
 }
 
 func (m Sand) ProcessInternal(env types.TileEnvironment) {
+	m.commonProcessInternal(env)
+
 	env.AddGravity()
 }
 

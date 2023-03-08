@@ -131,6 +131,8 @@ type TileEnvironment interface {
 	AddGravity() (isApplied bool)
 	// AddReverseGravity adds the reversed vertical gravity force Vector to the Particle.
 	AddReverseGravity() (isApplied bool)
+	// AddWind adds global wind force Vector.
+	AddWind() (isApplied bool)
 
 	// ReplaceSelf replaces the Particle with a new one.
 	ReplaceSelf(newMaterial Material) (flagIn bool)

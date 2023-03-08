@@ -8,7 +8,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
 	"github.com/itiky/goPixelWorld/monitor"
+	"github.com/itiky/goPixelWorld/pkg"
 	"github.com/itiky/goPixelWorld/world"
+	"github.com/itiky/goPixelWorld/world/closerange"
 	worldTypes "github.com/itiky/goPixelWorld/world/types"
 )
 
@@ -132,10 +134,25 @@ func (r *Runner) Draw(screen *ebiten.Image) {
 	// Render the debug text message
 	mouseX, mouseY := ebiten.CursorPosition()
 	fps := ebiten.ActualFPS()
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("[%d, %d]\n%.1f\n%d",
-		r.mouseCoordToWorld(mouseX), r.mouseCoordToWorld(mouseY),
+	globalWind := closerange.GetWind()
+
+	var globalWindStr string
+	if !globalWind.IsZero() {
+		switch globalWind.Angle() {
+		case pkg.Rad0:
+			globalWindStr = fmt.Sprintf("[%.2f, ->]", globalWind.Magnitude())
+		case pkg.Rad180:
+			globalWindStr = fmt.Sprintf("[%.2f, <-]", globalWind.Magnitude())
+		default:
+			globalWindStr = fmt.Sprintf("[%.2f, %.1f]", globalWind.Magnitude(), globalWind.Angle())
+		}
+	}
+
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %.1f  Particles: %d  Wind: %s\n[%d, %d]",
 		fps,
 		drawnPixels,
+		globalWindStr,
+		r.mouseCoordToWorld(mouseX), r.mouseCoordToWorld(mouseY),
 	))
 }
 

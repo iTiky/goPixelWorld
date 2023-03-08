@@ -62,6 +62,8 @@ func (m Bug) ColorAdjusted(health float64) color.Color {
 func (m Bug) ProcessInternal(env types.TileEnvironment) {
 	var moveDir pkg.Direction
 
+	m.commonProcessInternal(env)
+
 	appendForce := func() {
 		if env.ForceVec().Magnitude() >= m.movementSpeedMagMax {
 			return

@@ -29,6 +29,8 @@ func NewAntiGraviton() AntiGraviton {
 }
 
 func (m AntiGraviton) ProcessInternal(env types.TileEnvironment) {
+	m.commonProcessInternal(env)
+
 	env.AddForceInRange(m.antiGravityForceMag, []types.MaterialFlag{types.MaterialFlagIsUnmovable})
 }
 
